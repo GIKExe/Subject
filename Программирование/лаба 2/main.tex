@@ -1,0 +1,100 @@
+\documentclass[oneside,a4paper,14pt]{extarticle} %размер шрифта 14
+\usepackage[T1,T2A]{fontenc}
+\usepackage[
+	a4paper,
+	letterpaper,
+	top=2cm,
+	bottom=2cm,
+	left=2.5cm,
+	right=1.5cm
+]{geometry}
+\usepackage[utf8]{inputenc} %кодировка текста
+\usepackage[russian]{babel} %поддержка русского языка
+\usepackage{textcomp} %текстовые символы
+\usepackage{indentfirst} %корректировка отступов
+\usepackage{listings} %для кода !!!
+\usepackage{minted} %для кода !!!
+\usepackage{enumitem} %для нумерации буквами
+\usepackage{graphicx} %работа с изображениям
+\usepackage{mwe} % for blindtext and example-image-a in example
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{amsmath}  % для формул и символов
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[all]{xy}
+\usepackage[breaklinks]{hyperref}
+%%размеркегляузаголоковразделов 
+\usepackage{titlesec} 
+\titleformat{\section}
+{\normalsize\bfseries} 
+{\thesection} {1em}{} 
+\titleformat{\subsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{} 
+\titleformat{\subsubsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{}
+
+\renewcommand\baselinestretch{1.33}\normalsize % межстрочный интервал
+\setlength{\parindent}{1.25cm}
+\usepackage{indentfirst}
+
+
+\begin{document}
+	\newpage\thispagestyle{empty}
+	\begin{center}
+		МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			РОССИЙСКОЙ ФЕДЕРАЦИИ
+			ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+			ОБРАЗОВАТЕЛЬНОЕ
+			УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+			Институт математики и информационных систем\\
+			Факультет автоматики и вычислительной техники\\
+			Кафедра электронных вычислительных машин
+	\end{center}
+	\vspace{20mm}
+	
+	\begin{center}
+		Отчёт по лабораторной работе №2\\
+		по дисциплине\\
+		<<Программирование>>\\
+		% << >>\\
+	\end{center}
+	\vspace{48mm}
+	
+	Выполнил студент гр. ИВТб-1303-06-00 \hspace{10mm} \rule[-0,5mm]{23mm}{0.15mm}\,/Гортоломей И.К./
+	
+	
+	Проверил преподаватель кафедры ЭВМ \hfill  \rule[-0,5mm]{30mm}{0.15mm}\,/Баташев П.А./
+	
+	\vfill
+	\begin{center}
+		Киров\\
+		2025
+	\end{center}
+
+	\newpage%\thispagestyle{empty}
+	
+	% \section*{Цель}
+
+	\section*{Задание}
+	\input{problems.tex}
+	\newpage
+
+	\section*{Решение}
+  \input{solutions.tex}
+
+	\section*{Выводы} В ходе лабораторной работы были успешно 
+закреплены на практике навыки обработки одномерных и двумерных 
+массивов, анализа последовательностей и работы с циклическими
+структурами. При решении задач были использованы базовые
+алгоритмы проверки условий, фильтрации элементов и анализа 
+паттернов в данных. Это позволило отработать применение 
+циклов, условных операторов и методов обработки числовых и 
+бинарных последовательностей, а также улучшить понимание 
+принципов работы с индексацией.
+
+\end{document}
