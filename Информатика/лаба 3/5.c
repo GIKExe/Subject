@@ -24,7 +24,7 @@ int main() {
     while (mz < 1024) { mz*=2; ex--; }
     while (mz >= 2048) { mz/=2; ex++; }
   }
-  for (i=16; i>0; i>>=1) printf("%d", (ex>>(int)log2(i))&1);
-  for (i=512; i>0; i>>=1) printf("%d", (mz>>(int)log2(i))&1);
+  for (i=16; i>0; i/=2) printf("%d", ex/i%2);
+  for (i=512; i>0; i/=2) printf("%d", mz/i%2);
   return 0;
 }
