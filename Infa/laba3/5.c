@@ -37,11 +37,11 @@ int main() {
     while (mz < 1024) {mz*=2; ez--;}
     while (mz >= 2048) {mz/=2; ez++;}
   }
-  printf("%d ", sz);
+  printf("%d", sz);
   for (n=16; n>0; n/=2) {
     digit = ez / n % 2;
     printf("%d", digit);
-  } printf(" ");
+  }
   for (n=512; n>0; n/=2) {
     digit = mz / n % 2;
     printf("%d", digit);
