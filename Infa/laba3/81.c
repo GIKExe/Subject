@@ -2,16 +2,15 @@
 #include <math.h>
 
 void f1() {
-  int a = 77617, b = 33096;
-  double c = 333.75 * pow(b,6)
-  + pow(a,2)*(11*pow(a,2)*pow(b,2)
-  - pow(b,6) - 121*pow(b,4) - 2)
-  + 5.5*pow(b,8) + (a/(2*b));
+  double a = 77617, b = 33096;
+  double c = 333.75 * pow(b,6) + pow(a,2)*(
+    11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) - 2
+  ) + 5.5*pow(b,8) + (a/(2*b));
   printf("%f\n\n", c);
 }
 
 void f2() {
-  int a = 77617, b = 33096;
+  double a = 77617, b = 33096;
   double c = 21*pow(b,2) - 2*pow(a,2)
   + 55*pow(b,4) - 10*pow(a,2)*pow(b,2) + (a/(2*b));
   printf("%f\n\n", c);
