@@ -23,6 +23,5 @@ int main() {
   for (n=pow(2,es-1); n>0; n/=2) {
     digit = ex/n%2;
     printf("%d", digit);
-  }
-  return 0;
+  }; return 0;
 }
