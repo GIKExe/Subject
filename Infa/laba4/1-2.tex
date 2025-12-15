@@ -1,0 +1,143 @@
+\documentclass [15pt,a4paper,twoside]{article}
+\usepackage[russian,shorthands=off]{babel}        % shorhands=off is required for babel french in combination with tikz karnaugh....
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{verbose,a4paper, tmargin=3.5cm,bmargin=3.5cm,lmargin=2.5cm,rmargin=2.5cm,headsep=1cm,footskip=1.5cm}
+\usepackage{fancyhdr}
+\usepackage{colortbl}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz -timing}
+\usepackage{tikz}
+\usetikzlibrary{karnaugh}
+\pagestyle{fancy}
+
+\definecolor{LogisimKMapColor0}{RGB}{128,0,0}
+\definecolor{LogisimKMapColor1}{RGB}{230,25,75}
+\definecolor{LogisimKMapColor2}{RGB}{250,190,190}
+\definecolor{LogisimKMapColor3}{RGB}{170,110,40}
+\definecolor{LogisimKMapColor4}{RGB}{245,130,48}
+\definecolor{LogisimKMapColor5}{RGB}{255,215,180}
+\definecolor{LogisimKMapColor6}{RGB}{128,128,0}
+\definecolor{LogisimKMapColor7}{RGB}{255,255,25}
+\definecolor{LogisimKMapColor8}{RGB}{210,245,60}
+\definecolor{LogisimKMapColor9}{RGB}{0,0,128}
+\definecolor{LogisimKMapColor10}{RGB}{145,30,180}
+\definecolor{LogisimKMapColor11}{RGB}{60,180,175}
+\definecolor{LogisimKMapColor12}{RGB}{0,130,203}
+\definecolor{LogisimKMapColor13}{RGB}{230,190,255}
+\definecolor{LogisimKMapColor14}{RGB}{170,255,195}
+\definecolor{LogisimKMapColor15}{RGB}{240,50,230}
+
+\fancyhead{}
+\fancyhead[C] {Сгенерированный документ Logisim-evolution на Mon Dec 15 16:39:29 MSK 2025}
+\fancyfoot[C] {\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\makeatother
+
+\begin{document}
+\section{Введение}
+Этот документ был разработан в результате логистической эволюции. Любая часть исходных текстов TeX может быть использована в ваших собственных документах без каких-либо проблем. Если вы хотите использовать все/части сгенерированных TeX-источников, не забудьте (1) включить необходимые пакеты и (2) отметить, что этот источник был создан в результате логистической эволюции.
+%===============================================================================
+\section{Таблица правды}
+Таблица может быть на пути к большому размеру для отображения на странице. Во время генерации не было выполнено вычислений по размеру таблицы относительно ширины/высоты страницы.
+%-------------------------------------------------------------------------------
+\subsection{Сжатая таблица истинности}
+\begin{center}
+\begin{tabular}{cccc|c}
+$x_1$&$x_2$&$x_3$&$x_4$&$f$\\
+\hline
+$0$&$-$&$-$&$-$&$1$\\
+$1$&$0$&$0$&$0$&$1$\\
+$1$&$0$&$0$&$1$&$0$\\
+$1$&$0$&$1$&$0$&$0$\\
+$1$&$0$&$1$&$1$&$1$\\
+$1$&$1$&$0$&$0$&$0$\\
+$1$&$1$&$0$&$1$&$1$\\
+$1$&$1$&$1$&$0$&$1$\\
+$1$&$1$&$1$&$1$&$0$\\
+
+\end{tabular}
+\end{center}
+%-------------------------------------------------------------------------------
+\subsection{Полная таблица истинности}
+
+%===============================================================================
+\section{Диаграммы Карнауга}
+В данном разделе представлены различные варианты диаграмм Карнауга данных функций.
+%-------------------------------------------------------------------------------
+\subsection{Пустые диаграммы Карнауга}
+\begin{center}
+\begin{tikzpicture}[karnaugh,disable bars,x=1\kmunitlength,y=1\kmunitlength,kmbar left sep=1\kmunitlength,grp/.style n args={4}{#1,fill=#1!30,minimum width= #2\kmunitlength,minimum height=#3\kmunitlength,rounded corners=0.2\kmunitlength,fill opacity=0.6,rectangle,draw}]
+\karnaughmap{4}{$f$}{{$x_1$}{$x_3$}{$x_2$}{$x_4$}}{}{
+\draw[kmbox] (-0.5,4.5)
+   node[below left]{$x_1$, $x_2$}
+   node[above right]{$x_3$, $x_4$} +(-0.2,0.2)
+   node[above left]{$f$};\draw (0,4) -- (-0.7,4.7);
+\foreach \x/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (\x+0.5,4.2) {\1};
+}
+\foreach \y/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (-0.4,-0.5-\y+4) {\1};
+}
+}
+\end{tikzpicture}
+\end{center}
+%-------------------------------------------------------------------------------
+\subsection{Заполнил диаграммы Карнауга.}
+\begin{center}
+\begin{tikzpicture}[karnaugh,disable bars,x=1\kmunitlength,y=1\kmunitlength,kmbar left sep=1\kmunitlength,grp/.style n args={4}{#1,fill=#1!30,minimum width= #2\kmunitlength,minimum height=#3\kmunitlength,rounded corners=0.2\kmunitlength,fill opacity=0.6,rectangle,draw}]
+\karnaughmap{4}{$f$}{{$x_1$}{$x_3$}{$x_2$}{$x_4$}}
+{1111111110010110}{
+\draw[kmbox] (-0.5,4.5)
+   node[below left]{$x_1$, $x_2$}
+   node[above right]{$x_3$, $x_4$} +(-0.2,0.2)
+   node[above left]{$f$};\draw (0,4) -- (-0.7,4.7);
+\foreach \x/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (\x+0.5,4.2) {\1};
+}
+\foreach \y/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (-0.4,-0.5-\y+4) {\1};
+}
+}
+\end{tikzpicture}
+\end{center}
+%-------------------------------------------------------------------------------
+\subsection{Заполненные диаграммы Карнауга с крышками}
+\begin{center}
+\begin{tikzpicture}[karnaugh,disable bars,x=1\kmunitlength,y=1\kmunitlength,kmbar left sep=1\kmunitlength,grp/.style n args={4}{#1,fill=#1!30,minimum width= #2\kmunitlength,minimum height=#3\kmunitlength,rounded corners=0.2\kmunitlength,fill opacity=0.6,rectangle,draw}]
+\karnaughmap{4}{$f$}{{$x_1$}{$x_3$}{$x_2$}{$x_4$}}
+{1111111110010110}{
+\draw[kmbox] (-0.5,4.5)
+   node[below left]{$x_1$, $x_2$}
+   node[above right]{$x_3$, $x_4$} +(-0.2,0.2)
+   node[above left]{$f$};\draw (0,4) -- (-0.7,4.7);
+\foreach \x/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (\x+0.5,4.2) {\1};
+}
+\foreach \y/\1 in %
+{0/00,1/01,2/11,3/10} {
+   \node at (-0.4,-0.5-\y+4) {\1};
+}
+   \node[grp={LogisimKMapColor0}{3.8}{1.8}](n0) at(2,3) {};
+   \node[grp={LogisimKMapColor1}{0.8}{0.8}](n1) at(0.5,3.5) {};
+   \node[grp={LogisimKMapColor1}{0.8}{0.8}](n2) at(0.5,0.5) {};
+   \node[grp={LogisimKMapColor2}{0.8}{0.8}](n3) at(2.5,3.5) {};
+   \node[grp={LogisimKMapColor2}{0.8}{0.8}](n4) at(2.5,0.5) {};
+   \node[grp={LogisimKMapColor3}{0.8}{1.8}](n5) at(1.5,2) {};
+   \node[grp={LogisimKMapColor4}{0.8}{1.8}](n6) at(3.5,2) {};
+}
+\end{tikzpicture}
+\end{center}
+%===============================================================================
+\section{Минимальные выражения}
+$f =  \overline{x_1} + \overline{x_2}  \cdot  \overline{x_3}  \cdot  \overline{x_4} + \overline{x_2}  \cdot x_3 \cdot x_4+x_2 \cdot  \overline{x_3}  \cdot x_4+x_2 \cdot x_3 \cdot  \overline{x_4} $~\\
+\end{document}
