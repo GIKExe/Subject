@@ -132,44 +132,50 @@
     <a name="circuit" val="test"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
     <a name="simulationFrequency" val="1.0"/>
-    <comp lib="4" loc="(480,140)" name="T Flip-Flop">
+    <comp lib="0" loc="(380,150)" name="Constant"/>
+    <comp lib="1" loc="(490,300)" name="AND Gate">
+      <a name="facing" val="south"/>
+    </comp>
+    <comp lib="4" loc="(410,140)" name="T Flip-Flop">
       <a name="appearance" val="logisim_evolution"/>
     </comp>
-    <comp lib="4" loc="(480,230)" name="T Flip-Flop">
+    <comp lib="4" loc="(410,230)" name="T Flip-Flop">
       <a name="appearance" val="logisim_evolution"/>
     </comp>
-    <comp lib="4" loc="(480,320)" name="T Flip-Flop">
+    <comp lib="4" loc="(410,320)" name="T Flip-Flop">
       <a name="appearance" val="logisim_evolution"/>
     </comp>
-    <comp lib="5" loc="(440,150)" name="Button"/>
-    <comp lib="5" loc="(570,150)" name="LED"/>
-    <comp loc="(770,220)" name="main"/>
-    <wire from="(440,150)" to="(450,150)"/>
-    <wire from="(450,150)" to="(450,190)"/>
-    <wire from="(450,150)" to="(470,150)"/>
-    <wire from="(450,190)" to="(450,240)"/>
-    <wire from="(450,190)" to="(470,190)"/>
-    <wire from="(450,240)" to="(450,330)"/>
-    <wire from="(450,240)" to="(470,240)"/>
-    <wire from="(450,330)" to="(470,330)"/>
-    <wire from="(460,210)" to="(460,280)"/>
-    <wire from="(460,210)" to="(530,210)"/>
-    <wire from="(460,280)" to="(470,280)"/>
-    <wire from="(460,300)" to="(460,370)"/>
-    <wire from="(460,300)" to="(530,300)"/>
-    <wire from="(460,370)" to="(470,370)"/>
-    <wire from="(530,150)" to="(540,150)"/>
-    <wire from="(530,190)" to="(530,210)"/>
-    <wire from="(530,240)" to="(550,240)"/>
-    <wire from="(530,280)" to="(530,300)"/>
-    <wire from="(530,330)" to="(540,330)"/>
-    <wire from="(540,150)" to="(540,220)"/>
-    <wire from="(540,220)" to="(550,220)"/>
-    <wire from="(540,260)" to="(540,330)"/>
-    <wire from="(540,260)" to="(550,260)"/>
-    <wire from="(560,150)" to="(560,170)"/>
-    <wire from="(560,150)" to="(570,150)"/>
-    <wire from="(560,170)" to="(770,170)"/>
-    <wire from="(770,170)" to="(770,220)"/>
+    <comp lib="5" loc="(380,190)" name="Button"/>
+    <comp lib="5" loc="(560,160)" name="LED"/>
+    <comp loc="(760,220)" name="main"/>
+    <wire from="(380,150)" to="(400,150)"/>
+    <wire from="(380,190)" to="(390,190)"/>
+    <wire from="(390,190)" to="(390,280)"/>
+    <wire from="(390,190)" to="(400,190)"/>
+    <wire from="(390,280)" to="(390,370)"/>
+    <wire from="(390,280)" to="(400,280)"/>
+    <wire from="(390,370)" to="(400,370)"/>
+    <wire from="(400,220)" to="(400,240)"/>
+    <wire from="(400,220)" to="(470,220)"/>
+    <wire from="(400,310)" to="(400,330)"/>
+    <wire from="(400,310)" to="(490,310)"/>
+    <wire from="(460,150)" to="(470,150)"/>
+    <wire from="(460,240)" to="(470,240)"/>
+    <wire from="(460,330)" to="(530,330)"/>
+    <wire from="(470,150)" to="(470,220)"/>
+    <wire from="(470,150)" to="(530,150)"/>
+    <wire from="(470,220)" to="(510,220)"/>
+    <wire from="(470,240)" to="(470,250)"/>
+    <wire from="(470,240)" to="(540,240)"/>
+    <wire from="(490,300)" to="(490,310)"/>
+    <wire from="(510,220)" to="(510,250)"/>
+    <wire from="(530,150)" to="(530,220)"/>
+    <wire from="(530,220)" to="(540,220)"/>
+    <wire from="(530,260)" to="(530,330)"/>
+    <wire from="(530,260)" to="(540,260)"/>
+    <wire from="(550,160)" to="(550,180)"/>
+    <wire from="(550,160)" to="(560,160)"/>
+    <wire from="(550,180)" to="(760,180)"/>
+    <wire from="(760,180)" to="(760,220)"/>
   </circuit>
 </project>

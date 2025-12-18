@@ -92,6 +92,8 @@
       <a name="appearance" val="classic"/>
       <a name="label" val="B4"/>
     </comp>
+    <comp lib="0" loc="(420,700)" name="Clock"/>
+    <comp lib="5" loc="(440,700)" name="LED"/>
     <comp lib="5" loc="(940,340)" name="LED">
       <a name="label" val="S1"/>
     </comp>
@@ -120,6 +122,7 @@
     <wire from="(420,540)" to="(510,540)"/>
     <wire from="(420,570)" to="(520,570)"/>
     <wire from="(420,600)" to="(520,600)"/>
+    <wire from="(420,700)" to="(440,700)"/>
     <wire from="(510,460)" to="(510,540)"/>
     <wire from="(510,460)" to="(570,460)"/>
     <wire from="(520,360)" to="(520,510)"/>
