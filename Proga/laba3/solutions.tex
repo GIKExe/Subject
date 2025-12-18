@@ -1,0 +1,128 @@
+
+Схема программы: \\
+\includegraphics[width=17cm]{1.pdf} \\
+\newpage
+\includegraphics[width=17cm]{2.pdf} \\
+\newpage
+\includegraphics[width=17cm]{3.pdf} \\
+\newpage
+
+Код программы на C: \\
+% \inputminted{C}{main.c}
+\begin{minted}{C}
+#include <math.h>
+#include <stdio.h>
+
+// Функция для вычисления значения кривой в точке x
+double f(double x) {
+  double res = 2 * pow(x, 3) + pow(x, 2) + 1;
+  if (res<0) res=0; // отбрасывание отрицательного
+  return res;
+}
+
+// Функция вычисления интеграла методом Симпсона
+double integral(double a, double b, int n) {
+  double h = (b - a) / n;   // шаг
+  double sum = f(a) + f(b); // сумма концов
+
+  for (int i = 1; i < n; i++) {
+    double x = a + i * h;
+    if (i % 2 == 0) sum += 2 * f(x);
+    else sum += 4 * f(x);
+  } return sum * h / 3;
+}
+
+// Процедура для оценки погрешности методом Рунге
+void estimate_error(double a, double b, int n, double* error) {
+  double integral_n = integral(a, b, n);
+  double integral_2n = integral(a, b, n * 2);
+  *error = fabs(integral_2n - integral_n);
+}
+
+void clear_buffer() {
+  while (getchar() != '\n');
+}
+
+int main() {
+  double a, b, result, error;
+  int ls = 0, ns = 0, is = 0, es = 0, x, n, choice;
+  do {
+    printf("\nМеню:");
+    printf("\n1. Ввести пределы (a -> b)");
+    if (ls) printf(" (%f, %f)", a, b);
+
+    printf("\n2. Ввести кол-во разбиений (n)");
+    if (ns) printf(" (%d)", n);
+
+    printf("\n3. Вычислить интеграл");
+    if (is) printf(" (%.6f)", result);
+
+    printf("\n4. Оценить погрешность");
+    if (es) {
+      double procent = (1 - fabs(result - error) / result) * 100;
+      printf(" (%.6f, %.6f%%)", error, procent);
+    }
+
+    printf("\n5. Выход");
+    printf("\nВыберите опцию: ");
+    scanf("%d", &choice);
+
+    
+    switch (choice) {
+      case 1:
+        printf("\nВведите пределы: ");
+        ls = 0;
+        if (scanf("%lf %lf", &a, &b) == 2) {
+          if (a < 0) {a = 0; printf("предел А был изменён на 0\n");}
+          if (b >= a) ls = 1;
+          else printf("Неверный ввод: B должно быть >= A\n");
+        } else {
+          printf("Ошибка ввода\n");
+          clear_buffer();
+        }; break;
+
+      case 2:
+        printf("\nВведите кол-во разбиений: ");
+        ns = 0;
+        if (scanf("%d", &n) == 1) {
+          if (n > 0 && n % 2 == 0) ns = 1;
+          else printf("Неверный ввод: n должно быть >0 и чётным\n");
+        } else {
+          printf("Ошибка ввода\n");
+          clear_buffer();
+        }; break;
+
+      case 3:
+        if (ls && ns) {
+          result = integral(a, b, n);
+          is = 1;
+        } else printf("\nСначала Введите данные!\n");
+        break;
+
+      case 4:
+        if (ls && ns) {
+          estimate_error(a, b, n, &error);
+          es = 1;
+          n *= 2; // Увеличиваем n для следующего вычисления
+        } else printf("\nСначала Введите данные!\n");
+        break;
+
+      case 5:
+        printf("\nВыход...\n");
+        break;
+
+      default:
+        printf("\nНеверный ввод! Выберите пункт от 1 до 5\n");
+        clear_buffer();
+    }
+  } while (choice != 5);
+  return 0;
+}
+\end{minted}
+
+\newpage
+
+Примеры работы программы: \\ \\
+\includegraphics[width=17cm]{p1.png} \\
+\includegraphics[width=17cm]{p2.png} \\
+\includegraphics[width=17cm]{p3.png} \\
