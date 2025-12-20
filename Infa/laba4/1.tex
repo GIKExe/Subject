@@ -107,7 +107,7 @@
 \begin{figure}[H]
 	Минимизированные булевые функции:
 \begin{itemize}
-	\item[] $f_1 =  \overline{x_1}  \cdot x_2+x_1 \cdot  \overline{x_2}  \cdot  \overline{x_3} +x_2 \cdot x_3$ (О)
+	\item[] $f_1 =  \overline{x_1} x_2 + x_1 \overline{x_2} \overline{x_3} + x_2 x_3$ (О)
 	\item[] $f_2 =  \overline{x_1} + \overline{x_2}  \cdot  \overline{x_3}  \cdot  \overline{x_4} + \overline{x_2}  \cdot x_3 \cdot x_4+x_2 \cdot  \overline{x_3}  \cdot x_4+x_2 \cdot x_3 \cdot  \overline{x_4} $ (О)
 \end{itemize}
 Перевод функции $f_1$ в базис Шеффера (Ш):
@@ -115,13 +115,10 @@
 	\item[] $x\ |\ y = \overline{x \cdot y},\ \ \ \overline{x}=x\ |\ x,\ \ \ x+y=\overline{x}\ |\ \overline{y},\ \ \ x \cdot y=\overline{x\ |\ y}$
 \end{itemize}
 \begin{enumerate}
-	\item $f_1 =  \overline{\overline{x_2 \cdot (\overline{x_1} + x_3)+x_1 \cdot  \overline{x_2}  \cdot  \overline{x_3}}}$
-	\item $f_1 =  \overline{(\overline{x_2 \cdot (\overline{x_1} + x_3)}) \cdot (\overline{x_1 \cdot  \overline{x_2}  \cdot  \overline{x_3}})}$
-	\item $f_1 =  (x_2\ |\ \overline{\overline{(\overline{x_1}+x_3)}})\ |\ (x_1\ |\ (\overline{x_2} \cdot \overline{x_3}))$
-	\item $f_1 =  (x_2\ |\ (\overline{x_1 \cdot \overline{x_3}}))\ |\ (x_1\ |\ (\overline{\overline{x_2}\ |\ \overline{x_3}}))$
-	\item $f_1 =  (x_2\ |\ (x_1\ |\ (x_3\ |\ x_3)))\ |\ (x_1\ |\ (\overline{(x_2\ |\ x_2)\ |\ (x_3\ |\ x_3)}))$
-	\item $f_1 =  (x_2\ |\ (x_1\ |\ (x_3\ |\ x_3)))\ |\ (x_1\ |\ (((x_2\ |\ x_2)\ |\ (x_3\ |\ x_3))\ |\ ((x_2\ |\ x_2)\ |\ (x_3\ |\ x_3))))$
+	\item $f_3 =  \overline{\overline{\overline{x_1} x_2 + x_1 \overline{x_2} \overline{x_3} + x_2 x_3}}$
+	\item $f_3 =  \overline{\overline{\overline{x_1} x_2} \cdot \overline{x_1 \overline{x_2} \overline{x_3}} \cdot \overline{x_2 x_3}}$
+	\item $f_3 =  (\overline{x_1}\ |\ x_2)\ |\ (x_1\ |\ \overline{x_2}\ |\ \overline{x_3})\ |\ (x_2\ |\ x_3)$
 \end{enumerate}
-$f_1 =  (x_2\ |\ (x_1\ |\ (x_3|x_3)))\ |\ (x_1\ |\ (((x_2|x_2)\ |\ (x_3|x_3))\ |\ ((x_2|x_2)\ |\ (x_3|x_3))))$ (Ш)
+$f_3 =  ((x_1\ | \ x_1)\ |\ x_2)\ |\ (x_1\ |\ (x_2\ |\ x_2)\ |\ (x_3\ |\ x_3))\ |\ (x_2\ |\ x_3)$ (Ш)
 \end{figure}
 % \newpage
