@@ -9,6 +9,7 @@
         "-gw3",
         "${file}",
         // "-o ${fileBasenameNoExtension}.exe"
+				"-O2"
       ],
       "group": {
         "kind": "build",
