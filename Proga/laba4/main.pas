@@ -2,34 +2,90 @@ program ShowKeyCodes;
 uses Keyboard, SysUtils;
 
 const
-	MAX_MSG = 2;
+	MAX_MSG = 8;
 
-procedure ShiftRight(var arr: array of integer; shiftCount, max_size: integer);
-var
-  i: integer;
+type
+	dArray = array of integer;
+
+// #####################################################
+// ФУНКЦИИ И ПРОЦЕДУРЫ
+procedure PushEnd(var arr: dArray; value: integer);
 begin
-  for i := max_size - 1 downto shiftCount do begin
-		arr[i] := arr[i - shiftCount];
-		// writeln('запись в ', i, ' из ', i - shiftCount);
-	end;
+	SetLength(arr, Length(arr)+1);
+	arr[Length(arr)-1] := value;
 end;
+
+function PopEnd(var arr: dArray): integer;
+var
+	value: integer;
+begin
+	value := arr[Length(arr)-1];
+	SetLength(arr, Length(arr)-1);
+	PopEnd := value;
+end;
+
+procedure PushStart(var arr: dArray; value: integer);
+var
+	i: integer;
+begin
+	SetLength(arr, Length(arr)+1);
+	for i := Length(arr)-1 downto 1 do arr[i] := arr[i-1];
+	arr[0] := value;
+end;
+
+function PopStart(var arr: dArray): integer;
+var
+	value, i: integer;
+begin
+	value := arr[0];
+	for i := 0 to Length(arr)-2 do arr[i] := arr[i+1];
+	SetLength(arr, Length(arr)-1);
+	PopStart := value;
+end;
+
+function InputCount(): integer;
+var
+	count: integer;
+begin
+	repeat
+		write('Введите количество элементов: ');
+		readln(count);
+		if count >= 0 then break;
+		writeln('Количество элементов должно быть положительным!');
+	until false;
+	InputCount := count;
+end;
+
+function InputNumber(): integer;
+var
+	number: integer;
+begin
+	write('Введите число: ');
+	readln(number);
+	InputNumber := number;
+end;
+// #####################################################
 
 var
 	// ####################
 	_key_event: TKeyEvent;
 	// ####################
 
-	arr: array of integer;
+	arr: dArray;
 	key: Word;
 	messages: array[0..MAX_MSG] of string = (
-		'Узнать размер Дек''а',
+		'Очистить',
+		'Заполнить',
 		'Заполнить случайными элементами',
-		'Отобразить массив'
+		'Узнать размер',
+		'Отобразить',
+		'Вставить в начало',
+		'Вставить в конец',
+		'Забрать из начала',
+		'Забрать из конца'
 	);
-	i, j, k: integer;
-	selected, number, size: integer;
-	x0, x1, x2, x3: integer;
-	y0, y1, y2: integer;
+	selected, number: integer;
+	i, x, x0, x1, x2, x3: integer;
 begin
 	// ##############
 	Randomize;
@@ -37,7 +93,6 @@ begin
 	// ##############
 
 	selected := 0;
-	size := 0;
 	repeat
 		// ##################
 		// очистить экран
@@ -45,41 +100,63 @@ begin
 		Write(#27'[1;1H');
 		// ##################
 
+		writeln('Управление Дек''ом');
 		for i := 0 to MAX_MSG do begin
-			if i = selected then write('[*] ')
-			else write('[ ] ');
+			if i = selected then
+				write('[*] ')
+			else
+				write('[ ] ');
 			writeln(messages[i]);
 		end;
 
 		// ###############################
-		// прочесть клавишу в KeyCode
+		// прочесть клавишу в key
 		_key_event := GetKeyEvent;
 		_key_event := TranslateKeyEvent(_key_event);
 		key := GetKeyEventCode(_key_event);
 		// ###############################
 
+		// в key клавиша ...?
 		case key of
-			// в key клавиша ESC?
+			// ESC?
 			283: begin writeln('Выход...'); break; end;
-			// в key клавиша UP?
+			// UP?
 			65313: selected := selected - 1;
-			// в key клавиша DOWN?
+			// DOWN?
 			65319: selected := selected + 1;
-			// в key клавиша ENTER?
+			// ENTER?
 			7181: begin
 				writeln;
+				// selected?
 				case selected of
-					0: writeln('Размер Дек''а: ', size, ' эл.');
+
+					0: begin
+						SetLength(arr, 0);
+						writeln('Дек очищен.');
+					end;
 
 					1: begin
-						write('Введите 0 для записи в конец, иначе в начало: ');
-						readln(y0);
+						SetLength(arr, 0);
+						x0 := InputCount();
+						for i := 1 to x0 do begin
+							read(number);
+							PushEnd(arr, number);
+						end;
+					end;
+
+					2: begin
+						writeln('Генерация N натуральных элементов');
+						// write('Введите 0 для записи в конец, иначе в начало: ');
+						// readln(x);
+
+						x0 := InputCount();
+
 						repeat
-							write('Введите кол-во элементов и диапазон: ');
-							readln(x0, x1, x2);
-							if x0 < 1 then writeln('Количество элементов должно быть больше 0!');
-							if x1 = x2 then writeln('Диапазон не может быть равен 0!');
-						until (x0 > 0) and (x1 <> x2);
+							write('Введите диапазон: ');
+							readln(x1, x2);
+							if x1 <> x2 then break;
+							writeln('Диапазон не может быть равен 0!');
+						until x0 = 0;
 
 						if x1 > x2 then begin
 							x3 := x1;
@@ -87,35 +164,52 @@ begin
 							x2 := x3;
 						end;
 
-						j := size;
-						size := size + x0;
-						// расширить массив на x0 элементов
-						SetLength(arr, size);
-
-						if y0 <> 0 then begin
-							j := x0 - 1;
-							// сдвинуть все элементы вправо на x0
-							ShiftRight(arr, x0, size);
-						end;
-
 						for i := 1 to x0 do begin
+							// записать в number случайное число от x1 до x2
 							number := Random(x2 - x1 + 1) + x1;
-							// writeln('index: ', j, ', new value: ', number);
-							arr[j] := number;
-							if y0 = 0 then j := j + 1 else j := j - 1;
+							// if x = 0 then
+							// 	PushEnd(arr, number)
+							// else
+							// 	PushStart(arr, number);
+							PushEnd(arr, number);
 						end;
 					end;
 
-					2: begin
+					3: begin
+						writeln('Размер: ', Length(arr), ' эл.');
+					end;
+
+					4: begin
 						write('Массив: ');
 						for i := 0 to Length(arr)-1 do write(arr[i], ' ');
 					end;
 
+					5: begin
+						number := InputNumber();
+						PushStart(arr, number);
+					end;
+
+					6: begin
+						number := InputNumber();
+						PushEnd(arr, number);
+					end;
+
+					7: begin
+						if Length(arr) > 0 then begin
+							number := PopStart(arr);
+							writeln('Число с начала: ', number);
+						end else writeln('В массиве нет элементов');
+					end;
+
+					8: begin
+						if Length(arr) > 0 then begin
+							number := PopEnd(arr);
+							writeln('Число с конца: ', number);
+						end else writeln('В массиве нет элементов');
+					end;
 				end;
 				readln;
 			end;
-		// else
-		// 	writeln('Другая клавиша: ', KeyCode);
 		end;
 
 		if selected < 0 then selected := MAX_MSG;
