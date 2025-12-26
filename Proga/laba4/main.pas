@@ -5,43 +5,15 @@ const
   MAX_MSG = 8;
 
 type
-  dArray = array of integer;
+  Element = record
+    data: integer;
+    prev: ^Element;
+    next: ^Element;
+  end;
+
 
 // #####################################################
 // ФУНКЦИИ И ПРОЦЕДУРЫ
-procedure PushEnd(var arr: dArray; value: integer);
-begin
-  SetLength(arr, Length(arr)+1);
-  arr[Length(arr)-1] := value;
-end;
-
-function PopEnd(var arr: dArray): integer;
-var
-  value: integer;
-begin
-  value := arr[Length(arr)-1];
-  SetLength(arr, Length(arr)-1);
-  PopEnd := value;
-end;
-
-procedure PushStart(var arr: dArray; value: integer);
-var
-  i: integer;
-begin
-  SetLength(arr, Length(arr)+1);
-  for i := Length(arr)-1 downto 1 do arr[i] := arr[i-1];
-  arr[0] := value;
-end;
-
-function PopStart(var arr: dArray): integer;
-var
-  value, i: integer;
-begin
-  value := arr[0];
-  for i := 0 to Length(arr)-2 do arr[i] := arr[i+1];
-  SetLength(arr, Length(arr)-1);
-  PopStart := value;
-end;
 
 function InputCount(): integer;
 var
@@ -64,6 +36,135 @@ begin
   readln(number);
   InputNumber := number;
 end;
+
+procedure Clear(var str: Element);
+var
+  ptr: ^Element;
+begin
+  while str.data > 0 do begin    // пока количество больше 0
+    ptr := str.prev;             // ссылка на элемент
+    str.prev := (ptr^).next;     // ссылка на следующий
+    dispose(ptr);                // освобождаем память
+    str.data := str.data - 1;
+  end;
+  str.next := nil;
+end;
+
+procedure Display(var str: Element);
+var
+  ptr: ^Element;
+begin
+  ptr := str.prev;               // указатель на текущий
+  while ptr <> nil do begin      // пока указатель действительный
+    write((ptr^).data, ' ');     // вывести значение элемента
+    ptr := (ptr^).next;          // указатель на следующий
+  end;
+end;
+
+procedure PushStart(var str: Element; value: integer);
+var
+  ptr: ^Element;
+begin
+  new(ptr);                      // выделение памяти
+  (ptr^).data := value;          // запись значения в A
+  (ptr^).prev := nil;            // в A ссылка на следующий
+  (ptr^).next := nil;            // в A ссылка на предыдущий
+  if str.data = 0 then begin      // если дек пуст
+    str.prev := ptr;               // в дек ссылку на начало
+    str.next := ptr;               // в дек ссылку на конец
+  end else begin                  // иначе
+    (ptr^).next := str.prev;       // в A ссылка на следующий B
+    (str.prev^).prev := ptr;       // в B ссылка на предыдущий A
+    str.prev := ptr;               // в начало дек ссылку на А
+  end;
+  str.data := str.data + 1;       // счётчик +1
+end;
+
+procedure PushEnd(var str: Element; value: integer);
+var
+  ptr: ^Element;
+begin
+  new(ptr);                      // выделение памяти
+  (ptr^).data := value;         // запись значения в A
+  (ptr^).prev := nil;            // в A ссылка на следующий
+  (ptr^).next := nil;            // в A ссылка на предыдущий
+  if str.data = 0 then begin     // если дек пуст
+    str.prev := ptr;               // в дек ссылку на начало
+    str.next := ptr;               // в дек ссылку на конец
+  end else begin                 // иначе
+    (ptr^).prev := str.next;       // в A ссылка на предыдущий Б
+    (str.next^).next := ptr;       // в Б ссылка на следующий А
+    str.next := ptr;               // в конец дек ссылку на А
+  end;
+  str.data := str.data + 1;      // счётчик +1
+end;
+
+function PopStart(var str: Element): integer;
+var
+  value: integer;
+  ptr: ^Element;
+begin
+  ptr := str.prev;
+  value := (ptr^).data;
+  str.prev := (ptr^).next;
+  str.data := str.data - 1;
+  if str.data > 0 then
+    (str.prev^).prev := nil;
+  dispose(ptr);
+  PopStart := value;
+end;
+
+function PopEnd(var str: Element): integer;
+var
+  value: integer;
+  ptr: ^Element;
+begin
+  ptr := str.next;
+  value := (ptr^).data;
+  str.next := (ptr^).prev;
+  str.data := str.data - 1;
+  if str.data > 0 then
+    (str.next^).next := nil;
+  dispose(ptr);
+  PopEnd := value;
+end;
+
+procedure Fill(var str: Element);
+var
+  value, i: integer;
+begin
+  for i := InputCount() downto 1 do begin
+    read(value);
+    PushEnd(str, value);
+  end;
+end;
+
+procedure RandomFill(var str: Element);
+var
+  a, b, c, count, i, value: integer;
+begin
+  writeln('Генерация N натуральных элементов');
+  count := InputCount();
+
+  while count <> 0 do begin
+    write('Введите диапазон: ');
+    readln(a, b);
+    if a <> b then break;
+    writeln('Диапазон не может быть равен 0!');
+  end;
+
+  if (a > b) and (count <> 0) then begin
+    c := a;
+    a := b;
+    b := c;
+  end;
+
+  for i := 1 to count do begin
+    // записать в value случайное число от a до b
+    value := Random(b - a + 1) + a;
+    PushEnd(str, value);
+  end;
+end;
 // #####################################################
 
 var
@@ -71,7 +172,8 @@ var
   _key_event: TKeyEvent;
   // ####################
 
-  arr: dArray;
+  str: Element;
+
   key: Word;
   messages: array[0..MAX_MSG] of string = (
     'Очистить',
@@ -84,13 +186,16 @@ var
     'Забрать из начала',
     'Забрать из конца'
   );
-  selected, number: integer;
-  i, x, x0, x1, x2, x3: integer;
+  selected, number, i: integer;
 begin
   // ##############
   Randomize;
   InitKeyboard;
   // ##############
+
+  str.data := 0;
+  str.prev := nil;
+  str.next := nil;
 
   selected := 0;
   repeat
@@ -131,81 +236,51 @@ begin
         case selected of
 
           0: begin
-            SetLength(arr, 0);
+            Clear(str);
             writeln('Дек очищен.');
           end;
 
           1: begin
-            SetLength(arr, 0);
-            x0 := InputCount();
-            for i := 1 to x0 do begin
-              read(number);
-              PushEnd(arr, number);
-            end;
+            Fill(str);
           end;
 
           2: begin
-            writeln('Генерация N натуральных элементов');
-            // write('Введите 0 для записи в конец, иначе в начало: ');
-            // readln(x);
-
-            x0 := InputCount();
-
-            while x0 <> 0 do begin
-              write('Введите диапазон: ');
-              readln(x1, x2);
-              if x1 <> x2 then break;
-              writeln('Диапазон не может быть равен 0!');
-            end;
-
-            if (x1 > x2) and (x0 <> 0) then begin
-              x3 := x1;
-              x1 := x2;
-              x2 := x3;
-            end;
-
-            for i := 1 to x0 do begin
-              // записать в number случайное число от x1 до x2
-              number := Random(x2 - x1 + 1) + x1;
-              // if x = 0 then
-              // 	PushEnd(arr, number)
-              // else
-              // 	PushStart(arr, number);
-              PushEnd(arr, number);
-            end;
+            RandomFill(str);
           end;
 
           3: begin
-            writeln('Размер: ', Length(arr), ' эл.');
+            writeln('Размер: ', str.data, ' эл.');
           end;
 
           4: begin
             write('Массив: ');
-            for i := 0 to Length(arr)-1 do write(arr[i], ' ');
+            Display(str);
           end;
 
           5: begin
             number := InputNumber();
-            PushStart(arr, number);
+            PushStart(str, number);
           end;
 
           6: begin
             number := InputNumber();
-            PushEnd(arr, number);
+            PushEnd(str, number);
           end;
 
           7: begin
-            if Length(arr) > 0 then begin
-              number := PopStart(arr);
+            if str.data > 0 then begin
+              number := PopStart(str);
               writeln('Число с начала: ', number);
-            end else writeln('В массиве нет элементов');
+            end else
+              writeln('В массиве нет элементов');
           end;
 
           8: begin
-            if Length(arr) > 0 then begin
-              number := PopEnd(arr);
-              writeln('Число с конца: ', number);
-            end else writeln('В массиве нет элементов');
+            if str.data > 0 then begin
+              number := PopEnd(str);
+              writeln('Число с начала: ', number);
+            end else
+              writeln('В массиве нет элементов');
           end;
         end;
         readln;
@@ -214,7 +289,6 @@ begin
 
     if selected < 0 then selected := MAX_MSG;
     selected := selected mod (MAX_MSG + 1);
-    // Sleep(50);
 
   until false;
   DoneKeyboard;
