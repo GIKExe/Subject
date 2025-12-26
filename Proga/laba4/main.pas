@@ -5,8 +5,9 @@ const
   MAX_MSG = 8;
 
 type
+	mainType = longint;
   Element = record
-    data: integer;
+    data: mainType;
     prev: ^Element;
     next: ^Element;
   end;
@@ -15,9 +16,9 @@ type
 // #####################################################
 // ФУНКЦИИ И ПРОЦЕДУРЫ
 
-function InputCount(): integer;
+function InputCount(): mainType;
 var
-  count: integer;
+  count: mainType;
 begin
   repeat
     write('Введите количество элементов: ');
@@ -28,9 +29,9 @@ begin
   InputCount := count;
 end;
 
-function InputNumber(): integer;
+function InputNumber(): mainType;
 var
-  number: integer;
+  number: mainType;
 begin
   write('Введите число: ');
   readln(number);
@@ -61,7 +62,7 @@ begin
   end;
 end;
 
-procedure PushStart(var str: Element; value: integer);
+procedure PushStart(var str: Element; value: mainType);
 var
   ptr: ^Element;
 begin
@@ -80,7 +81,7 @@ begin
   str.data := str.data + 1;       // счётчик +1
 end;
 
-procedure PushEnd(var str: Element; value: integer);
+procedure PushEnd(var str: Element; value: mainType);
 var
   ptr: ^Element;
 begin
@@ -99,9 +100,9 @@ begin
   str.data := str.data + 1;      // счётчик +1
 end;
 
-function PopStart(var str: Element): integer;
+function PopStart(var str: Element): mainType;
 var
-  value: integer;
+  value: mainType;
   ptr: ^Element;
 begin
   ptr := str.prev;
@@ -109,14 +110,16 @@ begin
   str.prev := (ptr^).next;
   str.data := str.data - 1;
   if str.data > 0 then
-    (str.prev^).prev := nil;
+    (str.prev^).prev := nil
+	else
+		str.next := nil;
   dispose(ptr);
   PopStart := value;
 end;
 
-function PopEnd(var str: Element): integer;
+function PopEnd(var str: Element): mainType;
 var
-  value: integer;
+  value: mainType;
   ptr: ^Element;
 begin
   ptr := str.next;
@@ -124,24 +127,25 @@ begin
   str.next := (ptr^).prev;
   str.data := str.data - 1;
   if str.data > 0 then
-    (str.next^).next := nil;
+    (str.next^).next := nil
+	else
+		str.prev := nil;
   dispose(ptr);
   PopEnd := value;
 end;
 
 procedure Fill(var str: Element);
 var
-  value, i: integer;
+  value, i: mainType;
 begin
   for i := InputCount() downto 1 do begin
-    read(value);
-    PushEnd(str, value);
+    read(value); PushEnd(str, value);
   end;
 end;
 
 procedure RandomFill(var str: Element);
 var
-  a, b, c, count, i, value: integer;
+  a, b, c, count, i, value: mainType;
 begin
   writeln('Генерация N натуральных элементов');
   count := InputCount();
@@ -154,9 +158,7 @@ begin
   end;
 
   if (a > b) and (count <> 0) then begin
-    c := a;
-    a := b;
-    b := c;
+    c := a; a := b; b := c;
   end;
 
   for i := 1 to count do begin
@@ -168,12 +170,9 @@ end;
 // #####################################################
 
 var
-  // ####################
   _key_event: TKeyEvent;
-  // ####################
 
   str: Element;
-
   key: Word;
   messages: array[0..MAX_MSG] of string = (
     'Очистить',
@@ -186,7 +185,7 @@ var
     'Забрать из начала',
     'Забрать из конца'
   );
-  selected, number, i: integer;
+  selected, number, i: mainType;
 begin
   // ##############
   Randomize;
@@ -253,8 +252,7 @@ begin
           end;
 
           4: begin
-            write('Массив: ');
-            Display(str);
+            write('Массив: '); Display(str);
           end;
 
           5: begin
@@ -278,7 +276,7 @@ begin
           8: begin
             if str.data > 0 then begin
               number := PopEnd(str);
-              writeln('Число с начала: ', number);
+              writeln('Число с конца: ', number);
             end else
               writeln('В массиве нет элементов');
           end;
