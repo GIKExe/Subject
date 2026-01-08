@@ -1,6 +1,8 @@
 *.exe
 *.bkp
 
+.vscode/*
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
