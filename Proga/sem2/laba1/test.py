@@ -4,6 +4,7 @@ from random import randint
 import os, sys
 from ctypes import *
 
+from utils import *
 
 def on_select(event):
 	global mod, struct
@@ -14,6 +15,7 @@ def on_select(event):
 		for btn in buttons:
 			btn.config(state="disabled")
 		mod.destroy(struct)
+	grid.clear_grid()
 
 	mod = mods[value]
 	struct = mod.make()
@@ -62,8 +64,64 @@ class Int32Entry(tk.Entry):
 			return False
 
 
+class NumberGrid:
+	def __init__(self, master):
+		self.master = master
+		self.cell_width = 80  # фиксированная ширина ячейки
+		self.cell_height = 30  # фиксированная высота ячейки
+		self.labels = []  # список для хранения виджетов
+		
+	def clear_grid(self):
+		for label in self.labels:
+			label.destroy()
+		self.labels.clear()
+
+	def fill_grid(self, numbers):
+		self.clear_grid()  # сначала очищаем
+		
+		# Рассчитываем максимальное количество столбцов
+		max_cols = self.master.winfo_width() // self.cell_width
+		
+		# Если чисел меньше, чем может поместиться в одну строку
+		if len(numbers) < max_cols:
+			max_cols = len(numbers)
+		
+		for i, number in enumerate(numbers):
+			row = i // max_cols
+			col = i % max_cols
+			
+			# Создаем метку с числом
+			label = ttk.Label(
+				self.master,
+				text=str(number),
+				width=10,
+				relief="ridge",  # рамка вокруг ячейки
+				padding=0,
+				anchor="center"
+			)
+			
+			# Размещаем с помощью place для фиксированных координат
+			x = col * (self.cell_width)
+			y = row * (self.cell_height)
+			
+			label.place(
+				x=x,
+				y=y,
+				width=self.cell_width,
+				height=self.cell_height
+			)
+			
+			self.labels.append(label)
+
+
+def check(ptr: Element) -> Element:
+	if not ptr:
+		return None
+	return ptr
+
+
 def main():
-	global buttons, combobox, text_area
+	global buttons, combobox, grid
 
 	root = tk.Tk()
 	root.title("Дек на библиотеках")
@@ -88,17 +146,30 @@ def main():
 	entry = Int32Entry(left_top_frame, width=30)
 	entry.pack(pady=5, padx=20)
 
+	def draw():
+		ptr = check(mod.getPrev(struct))
+		nums = []
+		while ptr != None:
+			nums.append(mod.getData(ptr))
+			ptr = check(mod.getNext(ptr))
+		grid.fill_grid(nums)
+
 	def f1():
 		mod.clear(struct)
 		print("дек очищен")
+		draw()
 
 	def f3():
 		value = randint(-2**31, 2**31-1)
 		mod.pushEnd(struct, value)
 		print(f"случайное помещено в конец: {value}");
+		draw()
 
 	def f4():
-		print(f"размер дека: {mod.getSize(struct)}")
+		value = mod.getData(struct)
+		print(f"размер дека: {value}")
+		entry.delete(0, tk.END)
+		entry.insert(0, str(value))
 
 	def f5():
 		value = entry.get()
@@ -106,6 +177,7 @@ def main():
 		value = int(value)
 		mod.pushStart(struct, value)
 		print(f"помещено в начало: {value}")
+		draw()
 
 	def f6():
 		value = entry.get()
@@ -113,16 +185,23 @@ def main():
 		value = int(value)
 		mod.pushEnd(struct, value)
 		print(f"помещено в конец: {value}")
+		draw()
 	
 	def f7():
-		if mod.getSize(struct) < 1: return
+		if mod.getData(struct) < 1: return
 		value = mod.popStart(struct)
 		print(f"получено из начала: {value}")
+		entry.delete(0, tk.END)
+		entry.insert(0, str(value))
+		draw()
 
 	def f8():
-		if mod.getSize(struct) < 1: return
+		if mod.getData(struct) < 1: return
 		value = mod.popEnd(struct)
 		print(f"получено из конца: {value}")
+		entry.delete(0, tk.END)
+		entry.insert(0, str(value))
+		draw()
 
 	buttons = []
 	button_nf = (
@@ -146,16 +225,9 @@ def main():
 		btn.pack(pady=5, padx=20, fill=tk.X)
 		buttons.append(btn)
 
-	text_area = scrolledtext.ScrolledText(right_frame, wrap=tk.WORD)
-	text_area.config(state="disabled")
-	text_area.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
-	sys.stdout = Redirector(text_area)
+	grid = NumberGrid(right_frame)
 
 	root.mainloop()
-
-
-class Element(Structure):
-	pass
 
 
 def load_mod1():
@@ -166,10 +238,14 @@ def load_mod1():
 
 	mod1.destroy.argtypes = [POINTER(Element)]
 
-	mod1.getSize.argtypes = [POINTER(Element)]
-	mod1.getSize.restype = c_int
+	mod1.getData.argtypes = [POINTER(Element)]
+	mod1.getData.restype = c_int
 
-	# mod1.display.argtypes = [POINTER(Element)]
+	mod1.getPrev.argtypes = [POINTER(Element)]
+	mod1.getPrev.restype = POINTER(Element)
+
+	mod1.getNext.argtypes = [POINTER(Element)]
+	mod1.getNext.restype = POINTER(Element)
 
 	mod1.pushStart.argtypes = [POINTER(Element), c_int]
 	mod1.pushEnd.argtypes = [POINTER(Element), c_int]
@@ -183,7 +259,7 @@ def load_mod1():
 
 
 def load_mod2():
-	import mod2
+	import mod2 as mod2
 	return mod2
 
 

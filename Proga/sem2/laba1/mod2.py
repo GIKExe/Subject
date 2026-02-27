@@ -1,6 +1,6 @@
+import utils
 
-
-class Element:
+class Element(utils.Element):
 	def __init__(self):
 		self.data: int = 0
 		self.prev: Element = None 
@@ -23,8 +23,14 @@ def destroy(str: Element) -> None:
 	clear(str)
 	del str
 
-def getSize(str: Element) -> int:
+def getData(str: Element) -> int:
 	return str.data
+
+def getPrev(str: Element) -> Element:
+	return str.prev
+
+def getNext(str: Element) -> Element:
+	return str.next
 
 def pushStart(str: Element, value: int) -> None:
 	ptr = Element()
