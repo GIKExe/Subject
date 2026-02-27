@@ -4,7 +4,10 @@ from random import randint
 import os, sys
 from ctypes import *
 
-from utils import *
+
+class Element(Structure):
+	pass
+
 
 def on_select(event):
 	global mod, struct

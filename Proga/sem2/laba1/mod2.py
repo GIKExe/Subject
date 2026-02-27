@@ -1,6 +1,6 @@
-import utils
 
-class Element(utils.Element):
+
+class Element:
 	def __init__(self):
 		self.data: int = 0
 		self.prev: Element = None 
