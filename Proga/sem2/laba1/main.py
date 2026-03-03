@@ -8,6 +8,7 @@ from ctypes import *
 class Element(Structure):
 	pass
 
+Element._fields_ = [("data", c_int), ("prev", POINTER(Element)), ("next", POINTER(Element))]
 
 def on_select(event):
 	global mod, struct
