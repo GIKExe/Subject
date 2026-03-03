@@ -89,44 +89,48 @@
 #define NOTE_DS8 4978
 
 typedef struct {
-	unsigned short note;
-	unsigned char temp;
+  unsigned short note;
+  unsigned char temp;
 } Block;
 
 // noname
 Block melody_1[] = {
-	{NOTE_AS5, 8}, {NOTE_AS5, 8}, {NOTE_AS5, 8}, {NOTE_FS5, 4}, {NOTE_CS6, 4},
-  {NOTE_AS5, 8}, {NOTE_FS5, 8}, {NOTE_CS6, 4}, {NOTE_AS5, 2},
-  {NOTE_F6, 8}, {NOTE_F6, 8}, {NOTE_F6, 8}, {NOTE_FS6, 4}, {NOTE_CS6, 4},
-  {NOTE_AS5, 8}, {NOTE_FS5, 8}, {NOTE_CS6, 4}, {NOTE_AS5, 2}
+  {NOTE_AS5, 8}, {NOTE_AS5, 8}, {NOTE_AS5, 8},
+  {NOTE_FS5, 4}, {NOTE_CS6, 4},
+  {NOTE_AS5, 8}, {NOTE_FS5, 8}, {NOTE_CS6, 4},
+  {NOTE_AS5, 2},
+  {NOTE_F6, 8}, {NOTE_F6, 8}, {NOTE_F6, 8},
+  {NOTE_FS6, 4}, {NOTE_CS6, 4},
+  {NOTE_AS5, 8}, {NOTE_FS5, 8}, {NOTE_CS6, 4},
+  {NOTE_AS5, 2}
 };
-const unsigned int melody_1_size = sizeof(melody_1) / sizeof(melody_1[0]);
+const int melody_1_size = sizeof(melody_1) / sizeof(melody_1[0]);
 
 // mario
 Block melody_2[] = {
-	{NOTE_E7, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_E7, 12},
-	{0, 12}, {NOTE_C7, 12}, {NOTE_E7, 12}, {0, 12},
-	{NOTE_G7, 12}, {0, 12}, {0, 12}, {0, 12},
-	{NOTE_G6, 12}, {0, 12}, {0, 12}, {0, 12},
+  {NOTE_E7, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_E7, 12},
+  {0, 12}, {NOTE_C7, 12}, {NOTE_E7, 12}, {0, 12},
+  {NOTE_G7, 12}, {0, 12}, {0, 12}, {0, 12},
+  {NOTE_G6, 12}, {0, 12}, {0, 12}, {0, 12},
 
-	{NOTE_C7, 12}, {0, 12}, {0, 12}, {NOTE_G6, 12},
-	{0, 12}, {0, 12}, {NOTE_E6, 12}, {0, 12},
-	{0, 12}, {NOTE_A6, 12}, {0, 12}, {NOTE_B6, 12},
-	{0, 12}, {NOTE_AS6, 12}, {NOTE_A6, 12}, {0, 12},
+  {NOTE_C7, 12}, {0, 12}, {0, 12}, {NOTE_G6, 12},
+  {0, 12}, {0, 12}, {NOTE_E6, 12}, {0, 12},
+  {0, 12}, {NOTE_A6, 12}, {0, 12}, {NOTE_B6, 12},
+  {0, 12}, {NOTE_AS6, 12}, {NOTE_A6, 12}, {0, 12},
 
-	{NOTE_G6, 9}, {NOTE_E7, 9}, {NOTE_G7, 9},
-	{NOTE_A7, 12}, {0, 12}, {NOTE_F7, 12}, {NOTE_G7, 12},
-	{0, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_C7, 12},
-	{NOTE_D7, 12}, {NOTE_B6, 12}, {0, 12}, {0, 12},
+  {NOTE_G6, 9}, {NOTE_E7, 9}, {NOTE_G7, 9},
+  {NOTE_A7, 12}, {0, 12}, {NOTE_F7, 12}, {NOTE_G7, 12},
+  {0, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_C7, 12},
+  {NOTE_D7, 12}, {NOTE_B6, 12}, {0, 12}, {0, 12},
 
-	{NOTE_C7, 12}, {0, 12}, {0, 12}, {NOTE_G6, 12},
-	{0, 12}, {0, 12}, {NOTE_E6, 12}, {0, 12},
-	{0, 12}, {NOTE_A6, 12}, {0, 12}, {NOTE_B6, 12},
-	{0, 12}, {NOTE_AS6, 12}, {NOTE_A6, 12}, {0, 12},
+  {NOTE_C7, 12}, {0, 12}, {0, 12}, {NOTE_G6, 12},
+  {0, 12}, {0, 12}, {NOTE_E6, 12}, {0, 12},
+  {0, 12}, {NOTE_A6, 12}, {0, 12}, {NOTE_B6, 12},
+  {0, 12}, {NOTE_AS6, 12}, {NOTE_A6, 12}, {0, 12},
 
-	{NOTE_G6, 9}, {NOTE_E7, 9}, {NOTE_G7, 9},
-	{NOTE_A7, 12}, {0, 12}, {NOTE_F7, 12}, {NOTE_G7, 12},
-	{0, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_C7, 12},
-	{NOTE_D7, 12}, {NOTE_B6, 12}, {0, 12}, {0, 12}
+  {NOTE_G6, 9}, {NOTE_E7, 9}, {NOTE_G7, 9},
+  {NOTE_A7, 12}, {0, 12}, {NOTE_F7, 12}, {NOTE_G7, 12},
+  {0, 12}, {NOTE_E7, 12}, {0, 12}, {NOTE_C7, 12},
+  {NOTE_D7, 12}, {NOTE_B6, 12}, {0, 12}, {0, 12}
 };
-const unsigned int melody_2_size = sizeof(melody_2) / sizeof(melody_2[0]);
+const int melody_2_size = sizeof(melody_2) / sizeof(melody_2[0]);
