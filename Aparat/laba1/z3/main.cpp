@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #define BUZZER_PIN 0
 #define FIRST_BAR_PIN 4
 #define BAR_COUNT 14

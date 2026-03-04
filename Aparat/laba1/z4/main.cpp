@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 void setup() {
 	for (int i = 0; i < 3; i++) pinMode(i+2, INPUT_PULLUP);
 	pinMode(7, OUTPUT);

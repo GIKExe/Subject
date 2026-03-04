@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 void setup() {
 	pinMode(2, INPUT_PULLUP); // левая = a
 	pinMode(3, INPUT_PULLUP); // правая = b
