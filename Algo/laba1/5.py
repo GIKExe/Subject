@@ -2,26 +2,21 @@
 from sys import stdin
 from collections import defaultdict
 
-def main():
-	t = int(stdin.readline())
-	for _ in range(t):
-		n = int(stdin.readline())
-		a = list(map(int, stdin.readline().split()))
-		s = sum(a)
-		
-		if (2 * s) % n != 0:
-			print(0)
-			continue
+t = int(stdin.readline())
+for _ in range(t):
+	n = int(stdin.readline())
+	a = list(map(int, stdin.readline().split()))
+	s = sum(a)
+	
+	if (2 * s) % n != 0:
+		print(0); continue
 			
-		target = (2 * s) // n
-		count = defaultdict(int)
-		ans = 0
+	target = (2 * s) // n
+	count = defaultdict(int)
+	ans = 0
 		
-		for x in a:
-			need = target - x
-			ans += count[need]
-			count[x] += 1
-		print(ans)
-
-if __name__ == "__main__":
-	main()
+	for x in a:
+		need = target - x
+		ans += count[need]
+		count[x] += 1
+	print(ans)
