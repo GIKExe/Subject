@@ -1,14 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+from tkinter import ttk, messagebox
 from random import randint
-import os, sys
 from ctypes import *
 
-
-class Element(Structure):
-	pass
-
-Element._fields_ = [("data", c_int), ("prev", POINTER(Element)), ("next", POINTER(Element))]
 
 def on_select(event):
 	global mod, struct
@@ -118,12 +112,6 @@ class NumberGrid:
 			self.labels.append(label)
 
 
-def check(ptr: Element) -> Element:
-	if not ptr:
-		return None
-	return ptr
-
-
 def main():
 	global buttons, combobox, grid
 
@@ -151,11 +139,7 @@ def main():
 	entry.pack(pady=5, padx=20)
 
 	def draw():
-		ptr = check(mod.getPrev(struct))
-		nums = []
-		while ptr != None:
-			nums.append(mod.getData(ptr))
-			ptr = check(mod.getNext(ptr))
+		nums = get_contents()
 		grid.fill_grid(nums)
 
 	def f1():
@@ -165,12 +149,12 @@ def main():
 
 	def f3():
 		value = randint(-2**31, 2**31-1)
-		mod.pushEnd(struct, value)
+		mod.pushBack(struct, value)
 		print(f"случайное помещено в конец: {value}");
 		draw()
 
 	def f4():
-		value = mod.getData(struct)
+		value = mod.getSize(struct)
 		print(f"размер дека: {value}")
 		entry.delete(0, tk.END)
 		entry.insert(0, str(value))
@@ -179,7 +163,7 @@ def main():
 		value = entry.get()
 		if not value: return
 		value = int(value)
-		mod.pushStart(struct, value)
+		mod.pushFront(struct, value)
 		print(f"помещено в начало: {value}")
 		draw()
 
@@ -187,21 +171,21 @@ def main():
 		value = entry.get()
 		if not value: return
 		value = int(value)
-		mod.pushEnd(struct, value)
+		mod.pushBack(struct, value)
 		print(f"помещено в конец: {value}")
 		draw()
 	
 	def f7():
-		if mod.getData(struct) < 1: return
-		value = mod.popStart(struct)
+		if mod.isEmpty(struct): return
+		value = mod.popFront(struct)
 		print(f"получено из начала: {value}")
 		entry.delete(0, tk.END)
 		entry.insert(0, str(value))
 		draw()
 
 	def f8():
-		if mod.getData(struct) < 1: return
-		value = mod.popEnd(struct)
+		if mod.isEmpty(struct): return
+		value = mod.popBack(struct)
 		print(f"получено из конца: {value}")
 		entry.delete(0, tk.END)
 		entry.insert(0, str(value))
@@ -235,36 +219,78 @@ def main():
 
 
 def load_mod1():
-	mod1 = CDLL("./mod1.dll")
-	mod1.make.restype = POINTER(Element)
+	mod = CDLL("./mod1.dll")
+	mod.make.restype = c_void_p
 
-	mod1.clear.argtypes = [POINTER(Element)]
+	mod.clear.argtypes = [c_void_p]
 
-	mod1.destroy.argtypes = [POINTER(Element)]
+	mod.destroy.argtypes = [c_void_p]
 
-	mod1.getData.argtypes = [POINTER(Element)]
-	mod1.getData.restype = c_int
+	mod.getSize.argtypes = [c_void_p]
+	mod.getSize.restype = c_int
 
-	mod1.getPrev.argtypes = [POINTER(Element)]
-	mod1.getPrev.restype = POINTER(Element)
+	mod.isEmpty.argtypes = [c_void_p]
+	mod.isEmpty.restype = c_bool
 
-	mod1.getNext.argtypes = [POINTER(Element)]
-	mod1.getNext.restype = POINTER(Element)
+	mod.pushFront.argtypes = [c_void_p, c_int]
+	mod.pushBack.argtypes = [c_void_p, c_int]
 
-	mod1.pushStart.argtypes = [POINTER(Element), c_int]
-	mod1.pushEnd.argtypes = [POINTER(Element), c_int]
+	mod.popFront.argtypes = [c_void_p]
+	mod.popFront.restype = c_int
 
-	mod1.popStart.argtypes = [POINTER(Element)]
-	mod1.popStart.restype = c_int
+	mod.popBack.argtypes = [c_void_p]
+	mod.popBack.restype = c_int
 
-	mod1.popEnd.argtypes = [POINTER(Element)]
-	mod1.popEnd.restype = c_int
-	return mod1
+	mod.display.argtypes = [c_void_p, POINTER(c_int), c_int]
+	mod.display.restype = c_int
+	return mod
 
 
 def load_mod2():
-	import mod2 as mod2
-	return mod2
+	import mod2 as mod
+	return mod
+
+
+def load_mod3():
+	mod = CDLL("./mod3.dll")
+	mod.make.restype = c_void_p
+
+	mod.clear.argtypes = [c_void_p]
+
+	mod.destroy.argtypes = [c_void_p]
+
+	mod.getSize.argtypes = [c_void_p]
+	mod.getSize.restype = c_int
+
+	mod.isEmpty.argtypes = [c_void_p]
+	mod.isEmpty.restype = c_bool
+
+	mod.pushFront.argtypes = [c_void_p, c_int]
+	mod.pushBack.argtypes = [c_void_p, c_int]
+
+	mod.popFront.argtypes = [c_void_p]
+	mod.popFront.restype = c_int
+
+	mod.popBack.argtypes = [c_void_p]
+	mod.popBack.restype = c_int
+
+	mod.display.argtypes = [c_void_p, POINTER(c_int), c_int]
+	mod.display.restype = c_int
+	return mod
+
+
+def get_contents() -> list[int]:
+	# использует: mod и struct
+	size: int = mod.getSize(struct)
+	if size == 0: return []
+	ArrayType = c_int * size
+	buffer = ArrayType()
+	copied = mod.display(struct, buffer, size)
+    
+	if copied != size:
+		raise RuntimeError("Ошибка копирования данных")
+    
+	return list(buffer)
 
 
 if __name__ == "__main__":
@@ -273,6 +299,7 @@ if __name__ == "__main__":
 	mods = {
 		"C++": load_mod1(),
 		"Python": load_mod2(),
+		"STL": load_mod3(),
 	}
 	combobox_options = list(mods.keys())
 	main()

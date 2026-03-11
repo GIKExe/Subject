@@ -23,16 +23,13 @@ def destroy(str: Element) -> None:
 	clear(str)
 	del str
 
-def getData(str: Element) -> int:
+def getSize(str: Element) -> int:
 	return str.data
 
-def getPrev(str: Element) -> Element:
-	return str.prev
+def isEmpty(str: Element) -> bool:
+	return str.data == 0
 
-def getNext(str: Element) -> Element:
-	return str.next
-
-def pushStart(str: Element, value: int) -> None:
+def pushFront(str: Element, value: int) -> None:
 	ptr = Element()
 	ptr.data = value
 	ptr.prev = None
@@ -46,7 +43,7 @@ def pushStart(str: Element, value: int) -> None:
 		str.prev = ptr
 	str.data += 1
 
-def pushEnd(str: Element, value: int) -> None:
+def pushBack(str: Element, value: int) -> None:
 	ptr = Element()
 	ptr.data = value
 	ptr.prev = None
@@ -60,7 +57,7 @@ def pushEnd(str: Element, value: int) -> None:
 		str.next = ptr
 	str.data += 1
 
-def popStart(str: Element) -> int:
+def popFront(str: Element) -> int:
 	ptr = str.prev
 	value = ptr.data
 	str.prev = ptr.next
@@ -72,7 +69,7 @@ def popStart(str: Element) -> int:
 	del ptr
 	return value
 
-def popEnd(str: Element) -> int:
+def popBack(str: Element) -> int:
 	ptr = str.next
 	value = ptr.data
 	str.next = ptr.prev
@@ -83,3 +80,14 @@ def popEnd(str: Element) -> int:
 		str.prev = None
 	del ptr
 	return value
+
+def display(str: Element, buffer: list[int], buffer_size: int) -> int:
+	if str.data <= buffer_size:
+		count: int = 0
+		ptr = str.prev
+		while (ptr != None):
+			buffer[count] = ptr.data
+			ptr = ptr.next
+			count += 1
+		return count
+	return 0

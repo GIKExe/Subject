@@ -1,5 +1,4 @@
-#include "main.h"
-// #include <iostream>
+#include "mod.h"
 
 struct Element {
 	int data;
@@ -7,7 +6,7 @@ struct Element {
 	Element *next;
 };
 
-Export Element* make() {
+Export void* make() {
 	Element* ptr = new Element;
 	ptr->data = 0;
 	ptr->prev = nullptr;
@@ -15,7 +14,8 @@ Export Element* make() {
 	return ptr;
 }
 
-Export void clear(Element* str) {
+Export void clear(void* handle) {
+	Element* str = (Element*) handle;
 	Element* ptr = str->prev;
 	while (ptr != nullptr) {
 		Element* next = ptr->next;
@@ -27,24 +27,24 @@ Export void clear(Element* str) {
 	str->data = 0;
 }
 
-Export void destroy(Element* str) {
+Export void destroy(void* handle) {
+	Element* str = (Element*) handle;
 	clear(str);
 	delete str;
 }
 
-Export int getData(Element* str) {
+Export int getSize(void* handle) {
+	Element* str = (Element*) handle;
 	return str->data;
 }
 
-Export Element* getPrev(Element* ptr) {
-	return ptr->prev;
+Export bool isEmpty(void* handle) {
+	Element* str = (Element*) handle;
+	return str->data == 0;
 }
 
-Export Element* getNext(Element* ptr) {
-	return ptr->next;
-}
-
-Export void pushStart(Element* str, int value) {
+Export void pushFront(void* handle, int value) {
+	Element* str = (Element*) handle;
 	Element* ptr = new Element;
 	ptr->data = value;
 	ptr->prev = nullptr;
@@ -60,7 +60,8 @@ Export void pushStart(Element* str, int value) {
 	str->data++;
 }
 
-Export void pushEnd(Element* str, int value) {
+Export void pushBack(void* handle, int value) {
+	Element* str = (Element*) handle;
 	Element* ptr = new Element;
 	ptr->data = value;
 	ptr->prev = nullptr;
@@ -76,7 +77,8 @@ Export void pushEnd(Element* str, int value) {
 	str->data++;
 }
 
-Export int popStart(Element* str) {
+Export int popFront(void* handle) {
+	Element* str = (Element*) handle;
 	Element* ptr = str->prev;
 	int value = ptr->data;
 	str->prev = ptr->next;
@@ -90,7 +92,8 @@ Export int popStart(Element* str) {
 	return value;
 }
 
-Export int popEnd(Element* str) {
+Export int popBack(void* handle) {
+	Element* str = (Element*) handle;
 	Element* ptr = str->next;
 	int value = ptr->data;
 	str->next = ptr->prev;
@@ -104,5 +107,15 @@ Export int popEnd(Element* str) {
 	return value;
 }
 
-// gcc -c main.cpp
-// gcc -shared -o mod1.dll main.o -lstdc++
+Export int display(void* handle, int* buffer, int buffer_size) {
+	Element* str = (Element*) handle;
+	if (buffer && str->data <= buffer_size) {
+		int count = 0;
+		Element* ptr = str->prev;
+		while (ptr != nullptr) {
+			buffer[count] = ptr->data;
+			ptr = ptr->next;
+			count++;
+		}; return count;
+	}; return 0;
+}
