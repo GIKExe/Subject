@@ -1,3 +1,4 @@
+from random import randint
 
 
 class Element:
@@ -56,6 +57,12 @@ def pushBack(str: Element, value: int) -> None:
 		str.next.next = ptr
 		str.next = ptr
 	str.data += 1
+
+def fillRandom(str: Element, value: int) -> None:
+	if value < 0: return
+	while value > 0:
+		pushBack(str, randint(-2**31, 2**31-1))
+		value -= 1
 
 def popFront(str: Element) -> int:
 	ptr = str.prev

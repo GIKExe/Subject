@@ -1,4 +1,8 @@
 #include "mod.h"
+#include <time.h>
+#include <stdlib.h>
+
+bool initRandom = false;
 
 struct Element {
 	int data;
@@ -7,6 +11,10 @@ struct Element {
 };
 
 Export void* make() {
+	if (!initRandom) {
+		srand(time(0));
+		initRandom = true;
+	}
 	Element* ptr = new Element;
 	ptr->data = 0;
 	ptr->prev = nullptr;
@@ -75,6 +83,15 @@ Export void pushBack(void* handle, int value) {
 		str->next = ptr;
 	}
 	str->data++;
+}
+
+Export void fillRandom(void* handle, int value) {
+	Element* str = (Element*) handle;
+	if (value < 0) return;
+	for (; value > 0; value--) {
+		unsigned int x = (rand() << 17) + (rand() << 2) + (rand() & 3);
+		pushBack(handle, (signed int) x);
+	}
 }
 
 Export int popFront(void* handle) {

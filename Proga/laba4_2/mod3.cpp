@@ -1,12 +1,20 @@
 #include "mod.h"
 
-#include <deque>
-#include <cstddef>
+#include <time.h>
+#include <stdlib.h>
 
+#include <deque>
+// #include <cstddef>
+
+bool initRandom = false;
 #define IntDeque std::deque<int>
 #define Cast(x) static_cast<IntDeque*>(x)
 
 Export void* make() {
+	if (!initRandom) {
+		srand(time(0));
+		initRandom = true;
+	}
 	try {
 		return new IntDeque();
 	} catch (...) {
@@ -44,6 +52,16 @@ Export void pushBack(void* handle, int value) {
 	Cast(handle)->push_back(value);
 }
 
+Export void fillRandom(void* handle, int value) {
+	if (handle == nullptr) return; 
+	auto *deq = Cast(handle);
+	if (value < 0) return;
+	for (; value > 0; value--) {
+		unsigned int x = (rand() << 17) + (rand() << 2) + (rand() & 3);
+		pushBack(handle, (signed int) x);
+	}
+}
+
 Export int popFront(void* handle) {
 	if (handle == nullptr) return 0; 
 	auto *deq = Cast(handle);
@@ -62,28 +80,11 @@ Export int popBack(void* handle) {
 	return value;
 }
 
-Export int deque_try_front(void* handle, int* out_value) {
-	auto* d = Cast(handle);
-	if (d->empty() || !out_value) return 0;
-	*out_value = d->front();
-	return 1;
-}
-
-Export int deque_try_back(void* handle, int* out_value) {
-	auto* d = Cast(handle);
-	if (d->empty() || !out_value)
-		return 0;
-	*out_value = d->back();
-	return 1;
-}
-
 Export int display(void* handle, int* buffer, int buffer_size) {
 	auto* d = Cast(handle);
 	int count = d->size();
-
 	if (buffer && count <= buffer_size) {
 		std::copy(d->begin(), d->end(), buffer);
 		return count;
-	}
-	return 0;
+	}; return 0;
 }
