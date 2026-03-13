@@ -14,7 +14,7 @@ def clear(str: Element) -> None:
 	ptr = str.prev;
 	while (ptr != None):
 		next = ptr.next;
-		del ptr # типо удаление
+		del ptr
 		ptr = next
 	str.prev = None
 	str.next = None
