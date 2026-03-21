@@ -1,0 +1,148 @@
+\newpage % задание2
+\section*{Задание \thesection : Реверс-инжиниринг промптов (Image-to-Text-to-Image)}
+\subsection{исходные данные}
+\indent \textbf{Референсный объект (Содержание):} Сгоревший серверный блок питания \\
+\indent \textbf{Окружение / Контекст:} Стол в мастерской \\
+\indent \textbf{Стиль референса:} Реалистичное фото последствий аварии \\
+\indent \textbf{Сложность интерпретации (Семантический разрыв):} Передача текстуры копоти и оплавленного пластика \\
+\indent \textbf{Критический визуальный маркер (Обязательно для восстановления):} Обугленные провода и следы гари на металлическом корпусе
+\newline
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/0.png}
+	\caption{Референс}
+\end{figure}
+\newpage
+\subsection{базовый промпт}
+\begin{verbatim}
+					Ты профессиональный промпт-инженер. Выдели ключевые
+					семантические слои, которые определяют суть картинки:
+					основной объект съемки, характер заднего плана, схему
+					освещения, угол обзора камеры и художественный стиль.
+					Сформируй ответ в виде запроса, строго структурированного
+					по разделам [Subject], [Environment], [Style], [Lighting],
+					[Color Palette]  для генерации фото.
+\end{verbatim}
+\subsection{журнал промпт-инжиниринга}
+\noindent Промпт v1:
+\begin{verbatim}
+					Ты профессиональный промпт-инженер. Выдели ключевые
+					семантические слои, которые определяют суть картинки:
+					основной объект съемки, характер заднего плана, схему
+					освещения, угол обзора камеры и художественный стиль.
+					Сформируй ответ в виде запроса, строго структурированного
+					по разделам [Subject], [Environment], [Style], [Lighting],
+					[Color Palette]  для генерации фото.
+\end{verbatim}
+\newpage
+\noindent Результат:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/1.png}
+	\caption{Промпт v1, модель (2)}
+\end{figure}
+\noindent Анализ ошибок: изображение сгенерировалось отзеркаленным и немного приближенным \\
+\noindent Корректировка: запросить в осмотре положение камеры и попросить не отзеркаливать. \\
+\newline
+\noindent Промпт v2:
+\begin{verbatim}
+					Ты профессиональный промпт-инженер. Выдели ключевые
+					семантические слои, которые определяют суть картинки:
+					основной объект съемки, характер заднего плана, схему
+					освещения, угол обзора и позицию камеры и художественный
+					стиль. Задай направление чтобы изображение не зеркалилось.
+					Сформируй ответ в виде запроса, строго структурированного
+					по разделам [Subject], [Environment], [Style], [Lighting],
+					[Color Palette] для генерации фото.
+\end{verbatim}
+\newpage
+\noindent Результат:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/2.png}
+	\caption{Промпт v2, модель (2)}
+\end{figure}
+\noindent Анализ ошибок: неточность в цветах объектов и структуре заднего плана \\
+\noindent Корректировка: отредактировать запроса, добавив данные требования \\
+\newline
+\noindent Промпт v3:
+\begin{verbatim}
+					Ты профессиональный промпт-инженер. Выдели суть картинки:
+					основной объект съемки, характер заднего плана, схему
+					освещения, угол обзора и позицию камеры и художественный
+					стиль. Задай направление чтобы изображение не зеркалилось.
+					Сформируй ответ в виде запроса, строго структурированного
+					по разделам [Subject], [Environment], [Style], [Lighting],
+					[Color Palette] для генерации фото. Сохрани цвета объектов
+					и структуру заднего плана.
+\end{verbatim}
+\newpage
+\noindent Результат:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/3.png}
+	\caption{Промпт v3, модель (2)}
+\end{figure}
+\noindent Анализ ошибок: ошибок практически нет, запрос хорошо воспроизводимый \\
+\noindent Корректировка: не требуется \\
+\newpage
+\noindent Результат:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/3.jpg}
+	\caption{Промпт v3, модель (1)}
+\end{figure}
+\noindent Анализ ошибок: качество хуже и артефакты присутствуют в большом количестве, но в целом сцена почти такая же. \\
+\noindent Корректировка: не требуется \\
+\newpage
+\subsection{Визуализация результатов:}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/0.png}
+	\caption{Референс}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/3.png}
+	\caption{Промпт v3, модель (2)}
+\end{figure}
+\newpage
+\noindent \textbf{Текстовое описание от VLM} \\
+\indent [Subject]: \\
+A severely burnt and melted Corsair CX600M power supply unit (PSU) as the central focus. The black modular cables are charred, fused together, and bubbling from extreme heat, spilling out from the right side of the unit towards the left. The metal casing is covered in thick black soot and bubbling heat damage. The "CX600M" green and white label is visible on the right side of the unit. The composition is non-mirrored: PSU is on the right, cables extend to the left. \\
+\indent [Environment]: \\
+A cluttered electronics repair workbench. In the background, a wooden pegboard is mounted with neatly organized hand tools (screwdrivers with yellow/black handles, various pliers). On the green cutting mat surface, there are scattered black debris, screws, a soldering station on the left, and rolls of solder. The background is slightly out of focus (shallow depth of field). \\
+\indent [Style]: \\
+Hyper-realistic macro photography, gritty industrial aesthetic, cinematic close-up. High level of detail on textures like melted plastic, soot, and brushed metal. \\
+\indent [Lighting]: \\
+Focused, warm overhead task lighting from a black adjustable desk lamp. Intense highlights on the top of the PSU and the melted cables, creating deep, dramatic shadows (chiaroscuro effect). The light source is visible at the top center. \\
+\indent [Color Palette]: \\
+Dominant shades of charcoal black, soot gray, and metallic silver. Accents of "Corsair green" on the label, yellow/red on tool handles, and a warm amber glow from the lamp contrasting with the cool teal of the cutting mat. \\
+\newpage
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|l|p{5cm}|p{5cm}|}
+		\hline
+		\textbf{Критерий} & \textbf{модель (1)} & \textbf{модель (2)} \\
+		\hline
+		Семантическая близость & 4 & 5 \\
+		\hline
+		\textbf{Итог} & 4 & 5\\
+		\hline
+	\end{tabular}
+\end{table}
+Модель (2) справилась лучше, т.к. имеет большее разрешение (качесвто) в бесплатной версии, в отличии от модели (1).
+Но при этом модуль (1) тоже постаралась сохранить общую сцену такой же, хоть и допускала много артефактов.
+\subsection{Финальный промпт:}
+\begin{verbatim}
+					Ты профессиональный промпт-инженер. Выдели суть картинки:
+					основной объект съемки, характер заднего плана, схему
+					освещения, угол обзора и позицию камеры и художественный
+					стиль. Задай направление чтобы изображение не зеркалилось.
+					Сформируй ответ в виде запроса, строго структурированного
+					по разделам [Subject], [Environment], [Style], [Lighting],
+					[Color Palette] для генерации фото. Сохрани цвета объектов
+					и структуру заднего плана.
+\end{verbatim}
+Данный промпт просит модель описать изображение не отзеркаливая его и не разрушая структуру заднего плана.
+Промпт формировался путём уточнения общих смыслов т.е. без конкретики.
