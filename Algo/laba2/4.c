@@ -8,10 +8,8 @@ int main() {
 		g[i] = 0;
 
 	for (int i = 0; i < m; i++) {
-		int x, y;
-		scanf("%d %d", &x, &y);
-		g[x]++;
-		g[y]++;
+		int x, y; scanf("%d %d", &x, &y);
+		g[x]++; g[y]++;
 	}
 
 	bool bus = true;
