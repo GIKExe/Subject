@@ -1,0 +1,49 @@
+{
+  "products": [
+    {
+      "name": "Яблоки Гольден",
+      "price": 79,
+      "discount_percent": null
+    },
+    {
+      "name": "Яблоки Гольден",
+      "price": 79,
+      "discount_percent": null
+    },
+    {
+      "name": "Яблоки Ред Делишес",
+      "price": 79,
+      "discount_percent": null
+    },
+    {
+      "name": "Яблоки Бребурн",
+      "price": 69,
+      "discount_percent": null
+    },
+    {
+      "name": "Яблоки Гренни Смит",
+      "price": 69,
+      "discount_percent": null
+    },
+    {
+      "name": "Яблоки Гренни Смит",
+      "price": 69,
+      "discount_percent": null
+    },
+    {
+      "name": "Груши Конференц",
+      "price": 79,
+      "discount_percent": null
+    },
+    {
+      "name": "Груши Аббат",
+      "price": 89,
+      "discount_percent": null
+    },
+    {
+      "name": "Груши Китайские",
+      "price": 59,
+      "discount_percent": null
+    }
+  ]
+}
