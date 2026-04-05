@@ -1,0 +1,175 @@
+/* Базовые настройки и переменные */
+:root {
+	--bg-color: #1e1e2f;
+	--card-bg: rgba(255, 255, 255, 0.05);
+	--accent-color: #2ecc71;
+	--accent-hover: #27ae60;
+	--text-primary: #ffffff;
+	--text-secondary: #b3b3b3;
+	--error-color: #e74c3c;
+	--transition: all 0.3s ease;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	background-color: var(--bg-color);
+	color: var(--text-primary);
+	line-height: 1.6;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+/* Header & Footer */
+header, footer {
+	text-align: center;
+	padding: 2rem 1rem;
+}
+
+footer {
+	margin-top: auto;
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+}
+
+/* Основной контейнер */
+main {
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 0 1rem;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 2rem;
+	width: 100%;
+}
+
+/* Секция управления (Карточка) */
+#controls {
+	background: var(--card-bg);
+	padding: 2rem;
+	border-radius: 15px;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+#controls-title {
+	margin-bottom: 1.5rem;
+	font-weight: 500;
+	color: var(--accent-color);
+}
+
+/* Группы ввода */
+.input-group {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 1.2rem;
+}
+
+label {
+	margin-bottom: 0.5rem;
+	font-size: 0.9rem;
+	color: var(--text-secondary);
+}
+
+input {
+	background: rgba(0, 0, 0, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	padding: 0.8rem;
+	border-radius: 8px;
+	color: white;
+	font-size: 1rem;
+	transition: var(--transition);
+}
+
+input:focus {
+	outline: none;
+	border-color: var(--accent-color);
+	box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);
+}
+
+/* Кнопки */
+button {
+	cursor: pointer;
+	border: none;
+	border-radius: 8px;
+	font-weight: 600;
+	transition: var(--transition);
+}
+
+#generate-btn {
+	width: 100%;
+	padding: 1rem;
+	background-color: var(--accent-color);
+	color: var(--bg-color);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+#generate-btn:hover {
+	background-color: var(--accent-hover);
+	transform: translateY(-2px);
+}
+
+#theme-toggle {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	padding: 0.5rem 1rem;
+	background: transparent;
+	border: 1px solid var(--accent-color);
+	color: var(--accent-color);
+	font-size: 0.8rem;
+}
+
+/* Ошибки */
+#error-message {
+	margin-top: 1rem;
+	color: var(--error-color);
+	background: rgba(231, 76, 60, 0.1);
+	padding: 0.8rem;
+	border-radius: 8px;
+	border: 1px solid var(--error-color);
+	font-size: 0.9rem;
+}
+
+/* График */
+.canvas-container {
+	position: relative;
+	width: 100%;
+	/* Ограничиваем высоту для удобства на мобильных */
+	height: 400px;
+	background: var(--card-bg);
+	padding: 1rem;
+	border-radius: 15px;
+}
+
+/* Адаптивность для десктопа */
+@media (min-width: 768px) {
+	main {
+		grid-template-columns: 350px 1fr;
+		align-items: start;
+	}
+	
+	.canvas-container {
+		height: 500px;
+	}
+}
+
+/* Скрытие для скринридеров */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}

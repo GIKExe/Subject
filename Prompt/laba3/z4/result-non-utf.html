@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Визуализатор нормального распределения</title>
+	<style>
+		/* Базовые настройки и переменные */
+		:root {
+			--bg-color: #1e1e2f;
+			--card-bg: rgba(255, 255, 255, 0.05);
+			--accent-color: #2ecc71;
+			--accent-hover: #27ae60;
+			--text-primary: #ffffff;
+			--text-secondary: #b3b3b3;
+			--error-color: #e74c3c;
+			--transition: all 0.3s ease;
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+			background-color: var(--bg-color);
+			color: var(--text-primary);
+			line-height: 1.6;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+
+		/* Header & Footer */
+		header, footer {
+			text-align: center;
+			padding: 2rem 1rem;
+		}
+
+		footer {
+			margin-top: auto;
+			color: var(--text-secondary);
+			font-size: 0.9rem;
+		}
+
+		/* Основной контейнер */
+		main {
+			max-width: 1000px;
+			margin: 0 auto;
+			padding: 0 1rem;
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 2rem;
+			width: 100%;
+		}
+
+		/* Секция управления (Карточка) */
+		#controls {
+			background: var(--card-bg);
+			padding: 2rem;
+			border-radius: 15px;
+			backdrop-filter: blur(10px);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		}
+
+		#controls-title {
+			margin-bottom: 1.5rem;
+			font-weight: 500;
+			color: var(--accent-color);
+		}
+
+		/* Группы ввода */
+		.input-group {
+			display: flex;
+			flex-direction: column;
+			margin-bottom: 1.2rem;
+		}
+
+		label {
+			margin-bottom: 0.5rem;
+			font-size: 0.9rem;
+			color: var(--text-secondary);
+		}
+
+		input {
+			background: rgba(0, 0, 0, 0.2);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			padding: 0.8rem;
+			border-radius: 8px;
+			color: white;
+			font-size: 1rem;
+			transition: var(--transition);
+		}
+
+		input:focus {
+			outline: none;
+			border-color: var(--accent-color);
+			box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);
+		}
+
+		/* Кнопки */
+		button {
+			cursor: pointer;
+			border: none;
+			border-radius: 8px;
+			font-weight: 600;
+			transition: var(--transition);
+		}
+
+		#generate-btn {
+			width: 100%;
+			padding: 1rem;
+			background-color: var(--accent-color);
+			color: var(--bg-color);
+			text-transform: uppercase;
+			letter-spacing: 1px;
+		}
+
+		#generate-btn:hover {
+			background-color: var(--accent-hover);
+			transform: translateY(-2px);
+		}
+
+		#theme-toggle {
+			position: absolute;
+			top: 1rem;
+			right: 1rem;
+			padding: 0.5rem 1rem;
+			background: transparent;
+			border: 1px solid var(--accent-color);
+			color: var(--accent-color);
+			font-size: 0.8rem;
+		}
+
+		/* Ошибки */
+		#error-message {
+			margin-top: 1rem;
+			color: var(--error-color);
+			background: rgba(231, 76, 60, 0.1);
+			padding: 0.8rem;
+			border-radius: 8px;
+			border: 1px solid var(--error-color);
+			font-size: 0.9rem;
+		}
+
+		/* График */
+		.canvas-container {
+			position: relative;
+			width: 100%;
+			height: 400px;
+			background: var(--card-bg);
+			padding: 1rem;
+			border-radius: 15px;
+		}
+
+		/* Адаптивность для десктопа */
+		@media (min-width: 768px) {
+			main {
+				grid-template-columns: 350px 1fr;
+				align-items: start;
+			}
+			
+			.canvas-container {
+				height: 500px;
+			}
+		}
+
+		/* Скрытие для скринридеров */
+		.visually-hidden {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			border: 0;
+		}
+	</style>
+</head>
+<body>
+
+	<header>
+		<h1>Визуализатор нормального распределения</h1>
+		<button id="theme-toggle" aria-label="Переключить тему">Сменить тему</button>
+	</header>
+
+	<main>
+		<section id="controls" aria-labelledby="controls-title">
+			<h2 id="controls-title">Параметры распределения</h2>
+			
+			<div class="input-group">
+				<label for="mu-input">Среднее значение (?):</label>
+				<input type="number" id="mu-input" step="any" placeholder="Например, 0" required>
+			</div>
+
+			<div class="input-group">
+				<label for="sigma-input">Стандартное отклонение (?):</label>
+				<input type="number" id="sigma-input" step="any" min="0.0001" placeholder="Например, 1" required>
+			</div>
+
+			<button id="generate-btn">Построить график</button>
+			
+			<div id="error-message" role="alert" hidden></div>
+		</section>
+
+		<section id="visualization" aria-labelledby="viz-title">
+			<h2 id="viz-title" class="visually-hidden">График распределения</h2>
+			<div class="canvas-container">
+				<canvas id="distribution-chart"></canvas>
+			</div>
+		</section>
+	</main>
+
+	<footer>
+		<p>&copy; 2026 Инструмент визуализации данных</p>
+	</footer>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	
+	<script>
+		// Глобальная переменная для хранения экземпляра чарта
+		let distributionChart = null;
+
+		document.getElementById('generate-btn').addEventListener('click', () => {
+			const muInput = document.getElementById('mu-input');
+			const sigmaInput = document.getElementById('sigma-input');
+			const errorBlock = document.getElementById('error-message');
+			
+			// 1. Предварительная очистка ошибок перед новой итерацией
+			errorBlock.textContent = '';
+			errorBlock.hidden = true;
+
+			const mu = parseFloat(muInput.value);
+			const sigma = parseFloat(sigmaInput.value);
+
+			// 2. Валидация полей
+			if (isNaN(mu) || isNaN(sigma)) {
+				showError('Пожалуйста, заполните оба поля корректными числами.');
+				return;
+			}
+
+			if (sigma <= 0) {
+				showError('Стандартное отклонение (?) должно быть больше 0.');
+				return;
+			}
+
+			// 3. Предупреждение о слишком большом ?
+			if (sigma > 1000) {
+				console.warn('Внимание: Высокое значение ? (>1000) может сделать гистограмму неинформативной.');
+				showError('Предупреждение: При ? > 1000 график может выглядеть слишком плоским.');
+			}
+
+			// 4. Генерация данных (Алгоритм Бокса-Мюллера)
+			const samples = 10000;
+			const data = [];
+			for (let i = 0; i < samples; i++) {
+				data.push(generateNormal(mu, sigma));
+			}
+
+			// 5. Подготовка данных с защитой от нулевого диапазона
+			const binCount = 40;
+			const histogramData = prepareHistogramData(data, mu, sigma, binCount);
+			
+			if (histogramData) {
+				renderChart(histogramData.labels, histogramData.counts, histogramData.theoretical);
+			}
+		});
+
+		function generateNormal(mu, sigma) {
+			let u = 0, v = 0;
+			while (u === 0) u = Math.random(); 
+			while (v === 0) v = Math.random();
+			const z0 = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+			return z0 * sigma + mu;
+		}
+
+		function prepareHistogramData(data, mu, sigma, binCount) {
+			const min = Math.min(...data);
+			const max = Math.max(...data);
+			let range = max - min;
+			
+			if (range === 0) {
+				range = 1; 
+			}
+
+			const binWidth = range / binCount;
+			const bins = new Array(binCount).fill(0);
+			const labels = [];
+			const theoreticalPoints = [];
+
+			data.forEach(val => {
+				let index = Math.floor((val - min) / binWidth);
+				if (index >= binCount) index = binCount - 1;
+				bins[index]++;
+			});
+
+			for (let i = 0; i < binCount; i++) {
+				const x = min + (i + 0.5) * binWidth;
+				labels.push(x.toFixed(2));
+
+				const exponent = Math.exp(-Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2)));
+				const pdf = (1 / (sigma * Math.sqrt(2 * Math.PI))) * exponent;
+				theoreticalPoints.push(pdf * data.length * binWidth);
+			}
+
+			return { labels, counts: bins, theoretical: theoreticalPoints };
+		}
+
+		function renderChart(labels, counts, theoretical) {
+			const ctx = document.getElementById('distribution-chart').getContext('2d');
+			if (distributionChart) {
+				distributionChart.destroy();
+			}
+
+			distributionChart = new Chart(ctx, {
+				type: 'bar',
+				data: {
+					labels: labels,
+					datasets: [
+						{
+							label: 'Гистограмма (10к чисел)',
+							data: counts,
+							backgroundColor: 'rgba(46, 204, 113, 0.4)',
+							borderColor: '#2ecc71',
+							borderWidth: 1,
+							barPercentage: 1,
+							categoryPercentage: 1,
+							order: 2
+						},
+						{
+							label: 'Теоретическая кривая',
+							data: theoretical,
+							type: 'line',
+							borderColor: '#ffffff',
+							borderWidth: 2,
+							pointRadius: 0,
+							fill: false,
+							tension: 0.4,
+							order: 1
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { labels: { color: '#ffffff' } }
+					},
+					scales: {
+						x: { ticks: { color: '#b3b3b3' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+						y: { ticks: { color: '#b3b3b3' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+					}
+				}
+			});
+		}
+
+		function showError(text) {
+			const errorBlock = document.getElementById('error-message');
+			errorBlock.textContent = text;
+			errorBlock.hidden = false;
+		}
+
+		// Логика переключения темы (упрощенная)
+		document.getElementById('theme-toggle').addEventListener('click', () => {
+			const body = document.body;
+			if (body.style.getPropertyValue('--bg-color') === '#ffffff') {
+				body.style.setProperty('--bg-color', '#1e1e2f');
+				body.style.setProperty('--text-primary', '#ffffff');
+				body.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.05)');
+			} else {
+				body.style.setProperty('--bg-color', '#ffffff');
+				body.style.setProperty('--text-primary', '#1e1e2f');
+				body.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.05)');
+			}
+		});
+	</script>
+</body>
+</html>

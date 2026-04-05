@@ -1,0 +1,215 @@
+/* ===== RESET & БАЗОВЫЕ СТИЛИ ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    background: #1e1e2f;
+    color: #eef2ff;
+    line-height: 1.5;
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.2s ease;
+}
+
+/* ===== ТИПОГРАФИКА ===== */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, #c0f2b0, #7ee0a0);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 0.25rem;
+}
+
+header p {
+    color: #a5b4fc;
+    font-size: 0.95rem;
+}
+
+/* ===== LAYOUT (FLEX/GRID) ===== */
+.app-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.control-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: rgba(30, 30, 47, 0.75);
+    backdrop-filter: blur(2px);
+    border-radius: 2rem;
+    padding: 1.8rem 2rem;
+    box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(80, 200, 120, 0.2);
+    transition: all 0.2s;
+}
+
+.input-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.input-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.input-field label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #cbd5ff;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+}
+
+.input-field input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: #0f0f1a;
+    border: 1px solid #2d2d44;
+    border-radius: 1.2rem;
+    font-size: 1rem;
+    color: #f0f3ff;
+    transition: 0.2s;
+    outline: none;
+}
+
+.input-field input:focus {
+    border-color: #4cd964;
+    box-shadow: 0 0 0 2px rgba(76, 217, 100, 0.3);
+    background: #181828;
+}
+
+/* Кнопка с зелёным акцентом */
+.generate-button {
+    background: linear-gradient(95deg, #2b9348, #1e7b3a);
+    border: none;
+    padding: 0.9rem 1.8rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 2.5rem;
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.15s, box-shadow 0.2s;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.generate-button:hover {
+    background: linear-gradient(95deg, #34a853, #258f44);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+}
+
+.generate-button:active {
+    transform: translateY(1px);
+}
+
+/* Блок ошибок */
+.error-container {
+    background: rgba(255, 80, 80, 0.12);
+    border-left: 4px solid #ff6b6b;
+    border-radius: 1rem;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.9rem;
+    color: #ffb4a2;
+    font-weight: 500;
+    word-break: break-word;
+    min-height: 60px;
+}
+
+/* Контейнер для canvas (адаптивность) */
+.chart-wrapper {
+    width: 100%;
+    margin: 1rem 0 0.5rem;
+    background: #0b0b14;
+    border-radius: 1.4rem;
+    padding: 0.8rem;
+    border: 1px solid #2a2a3c;
+}
+
+canvas {
+    max-width: 100%;
+    height: auto;
+    width: 100%;
+    display: block;
+    background: #0b0b14;
+    border-radius: 1rem;
+}
+
+.card-footer {
+    text-align: center;
+    margin-top: 1.2rem;
+    font-size: 0.75rem;
+    color: #6c7a9e;
+    border-top: 1px solid #292942;
+    padding-top: 1rem;
+}
+
+.page-footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: #525a7c;
+}
+
+/* ===== АДАПТИВНОСТЬ (мобильные) ===== */
+@media (max-width: 700px) {
+    body {
+        padding: 1rem;
+    }
+    .card {
+        padding: 1.3rem;
+    }
+    .input-group {
+        gap: 1rem;
+    }
+    .generate-button {
+        padding: 0.7rem 1.2rem;
+        font-size: 1rem;
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    .chart-wrapper {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .input-field {
+        min-width: 100%;
+    }
+    .card {
+        border-radius: 1.5rem;
+    }
+    .generate-button {
+        border-radius: 2rem;
+    }
+}

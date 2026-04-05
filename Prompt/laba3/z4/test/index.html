@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Визуализатор нормального распределения</title>
+    <!-- Подключение Chart.js через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header class="app-header">
+        <h1>📊 Визуализатор нормального распределения</h1>
+        <p>Генерация 10 000 точек · Гистограмма + теоретическая кривая</p>
+    </header>
+
+    <main>
+        <section class="control-section">
+            <div class="card">
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="mu-input">Среднее (μ)</label>
+                        <input type="number" id="mu-input" step="any" placeholder="например: 0" value="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="sigma-input">Стандартное отклонение (σ) > 0</label>
+                        <input type="number" id="sigma-input" step="any" placeholder="например: 1" value="1">
+                    </div>
+                </div>
+                <button id="generate-btn" class="generate-button">✨ Построить график</button>
+                <div id="error-message" class="error-container" aria-live="polite"></div>
+                <div class="chart-wrapper">
+                    <canvas id="distribution-chart" width="800" height="450"></canvas>
+                </div>
+                <footer class="card-footer">
+                    <small>Гистограмма (40 столбцов) + нормальная кривая (метод Бокса–Мюллера)</small>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <p>Визуализация статистики · Адаптивный интерфейс</p>
+    </footer>
+</body>
+</html>

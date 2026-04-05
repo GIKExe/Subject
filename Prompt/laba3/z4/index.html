@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="index.css">
+	<title>Визуализатор нормального распределения</title>
+</head>
+<body>
+
+	<header>
+		<h1>Визуализатор нормального распределения</h1>
+		<button id="theme-toggle" aria-label="Переключить тему">Сменить тему</button>
+	</header>
+
+	<main>
+		<section id="controls" aria-labelledby="controls-title">
+			<h2 id="controls-title">Параметры распределения</h2>
+			
+			<div class="input-group">
+				<label for="mu-input">Среднее значение (μ):</label>
+				<input type="number" id="mu-input" step="any" placeholder="Например, 0" required>
+			</div>
+
+			<div class="input-group">
+				<label for="sigma-input">Стандартное отклонение (σ):</label>
+				<input type="number" id="sigma-input" step="any" min="0.0001" placeholder="Например, 1" required>
+			</div>
+
+			<button id="generate-btn">Построить график</button>
+			
+			<div id="error-message" role="alert" hidden></div>
+		</section>
+
+		<section id="visualization" aria-labelledby="viz-title">
+			<h2 id="viz-title" class="visually-hidden">График распределения</h2>
+			<div class="canvas-container">
+				<canvas id="distribution-chart"></canvas>
+			</div>
+		</section>
+	</main>
+
+	<footer>
+		<p>&copy; 2026 Инструмент визуализации данных</p>
+	</footer>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="index.js"></script>
+</body>
+</html>

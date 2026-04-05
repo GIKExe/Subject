@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Визуализатор нормального распределения</title>
+    <!-- Подключение Chart.js через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== RESET & БАЗОВЫЕ СТИЛИ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: #1e1e2f;
+            color: #eef2ff;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.2s ease;
+        }
+
+        /* ===== ТИПОГРАФИКА ===== */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #c0f2b0, #7ee0a0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        header p {
+            color: #a5b4fc;
+            font-size: 0.95rem;
+        }
+
+        /* ===== LAYOUT (FLEX/GRID) ===== */
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-section {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(30, 30, 47, 0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(80, 200, 120, 0.2);
+            transition: all 0.2s;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-field label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #cbd5ff;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: #0f0f1a;
+            border: 1px solid #2d2d44;
+            border-radius: 1.2rem;
+            font-size: 1rem;
+            color: #f0f3ff;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .input-field input:focus {
+            border-color: #4cd964;
+            box-shadow: 0 0 0 2px rgba(76, 217, 100, 0.3);
+            background: #181828;
+        }
+
+        /* Кнопка с зелёным акцентом */
+        .generate-button {
+            background: linear-gradient(95deg, #2b9348, #1e7b3a);
+            border: none;
+            padding: 0.9rem 1.8rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 2.5rem;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.15s, box-shadow 0.2s;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .generate-button:hover {
+            background: linear-gradient(95deg, #34a853, #258f44);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        .generate-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Блок ошибок */
+        .error-container {
+            background: rgba(255, 80, 80, 0.12);
+            border-left: 4px solid #ff6b6b;
+            border-radius: 1rem;
+            padding: 0.8rem 1rem;
+            margin: 0.5rem 0 1rem;
+            font-size: 0.9rem;
+            color: #ffb4a2;
+            font-weight: 500;
+            word-break: break-word;
+            min-height: 60px;
+        }
+
+        /* Контейнер для canvas (адаптивность) */
+        .chart-wrapper {
+            width: 100%;
+            margin: 1rem 0 0.5rem;
+            background: #0b0b14;
+            border-radius: 1.4rem;
+            padding: 0.8rem;
+            border: 1px solid #2a2a3c;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            width: 100%;
+            display: block;
+            background: #0b0b14;
+            border-radius: 1rem;
+        }
+
+        .card-footer {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.75rem;
+            color: #6c7a9e;
+            border-top: 1px solid #292942;
+            padding-top: 1rem;
+        }
+
+        .page-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
+            color: #525a7c;
+        }
+
+        /* ===== АДАПТИВНОСТЬ (мобильные) ===== */
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            .card {
+                padding: 1.3rem;
+            }
+            .input-group {
+                gap: 1rem;
+            }
+            .generate-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .chart-wrapper {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .input-field {
+                min-width: 100%;
+            }
+            .card {
+                border-radius: 1.5rem;
+            }
+            .generate-button {
+                border-radius: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <h1>📊 Визуализатор нормального распределения</h1>
+        <p>Генерация 10 000 точек · Гистограмма + теоретическая кривая</p>
+    </header>
+
+    <main>
+        <section class="control-section">
+            <div class="card">
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="mu-input">Среднее (μ)</label>
+                        <input type="number" id="mu-input" step="any" placeholder="например: 0" value="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="sigma-input">Стандартное отклонение (σ) > 0</label>
+                        <input type="number" id="sigma-input" step="any" placeholder="например: 1" value="1">
+                    </div>
+                </div>
+                <button id="generate-btn" class="generate-button">✨ Построить график</button>
+                <div id="error-message" class="error-container" aria-live="polite"></div>
+                <div class="chart-wrapper">
+                    <canvas id="distribution-chart" width="800" height="450"></canvas>
+                </div>
+                <footer class="card-footer">
+                    <small>Гистограмма (40 столбцов) + нормальная кривая (метод Бокса–Мюллера)</small>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <p>Визуализация статистики · Адаптивный интерфейс</p>
+    </footer>
+
+    <script>
+        // === ВИЗУАЛИЗАТОР НОРМАЛЬНОГО РАСПРЕДЕЛЕНИЯ ===
+        // Генерация 10 000 точек · Гистограмма (40 bins) + теоретическая кривая
+        // Используется метод Бокса – Мюллера
+
+        (function() {
+            // DOM элементы
+            const muInput = document.getElementById('mu-input');
+            const sigmaInput = document.getElementById('sigma-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const errorDiv = document.getElementById('error-message');
+            const canvas = document.getElementById('distribution-chart');
+            
+            let chartInstance = null;   // для уничтожения старого графика
+            
+            // === 1. Генерация нормальных случайных чисел (Box–Muller) ===
+            function generateNormalSamples(mean, stdDev, count) {
+                const samples = [];
+                // Box–Muller возвращает два независимых стандартных нормальных числа за итерацию
+                for (let i = 0; i < count / 2; i++) {
+                    let u = 0, v = 0;
+                    // избегаем нулевых значений для логарифма (математическая защита)
+                    while (u === 0) u = Math.random();
+                    while (v === 0) v = Math.random();
+                    
+                    const z0 = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                    const z1 = Math.sqrt(-2.0 * Math.log(u)) * Math.sin(2.0 * Math.PI * v);
+                    
+                    samples.push(mean + stdDev * z0);
+                    samples.push(mean + stdDev * z1);
+                }
+                // если count нечётный (но 10000 чётное, оставляем на всякий случай)
+                if (count % 2 !== 0) {
+                    let u = 0, v = 0;
+                    while (u === 0) u = Math.random();
+                    while (v === 0) v = Math.random();
+                    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                    samples.push(mean + stdDev * z);
+                }
+                return samples.slice(0, count);
+            }
+            
+            // === 2. Построение гистограммы (40 bins) и теоретической кривой ===
+            function buildHistogramAndCurve(data, mean, stdDev, binsCount = 40) {
+                if (!data.length) return { labels: [], histogramCounts: [], expectedCounts: [] };
+                
+                const N = data.length;
+                let minVal = Math.min(...data);
+                let maxVal = Math.max(...data);
+                
+                // Доп. защита: если все значения совпадают (binWidth = 0)
+                let binWidth = (maxVal - minVal) / binsCount;
+                if (binWidth === 0 || !isFinite(binWidth)) {
+                    console.warn('⚠️ Все сгенерированные числа идентичны. Принудительно расширяем диапазон, binWidth = 1');
+                    minVal = minVal - 0.5;
+                    maxVal = maxVal + 0.5;
+                    binWidth = (maxVal - minVal) / binsCount;
+                    if (binWidth === 0) binWidth = 1; // крайний случай
+                }
+                
+                // Массив для подсчёта частот
+                const counts = new Array(binsCount).fill(0);
+                
+                // Заполнение гистограммы
+                for (let value of data) {
+                    let idx = Math.floor((value - minVal) / binWidth);
+                    if (idx === binsCount) idx = binsCount - 1;   // защита от погрешности double
+                    if (idx >= 0 && idx < binsCount) {
+                        counts[idx]++;
+                    }
+                }
+                
+                // Метки (центры интервалов)
+                const labels = [];
+                const binCenters = [];
+                for (let i = 0; i < binsCount; i++) {
+                    const center = minVal + (i + 0.5) * binWidth;
+                    binCenters.push(center);
+                    labels.push(center.toFixed(3));
+                }
+                
+                // === Теоретическая кривая нормального распределения ===
+                // Плотность нормального распределения f(x) = (1/(σ√(2π))) * exp(-0.5*((x-μ)/σ)^2)
+                // Ожидаемое количество точек в каждом бине = N * binWidth * f(центр)
+                const expectedCounts = [];
+                const sqrt2pi = Math.sqrt(2 * Math.PI);
+                for (let i = 0; i < binsCount; i++) {
+                    const x = binCenters[i];
+                    const z = (x - mean) / stdDev;
+                    const pdf = (1 / (stdDev * sqrt2pi)) * Math.exp(-0.5 * z * z);
+                    let expected = N * binWidth * pdf;
+                    expectedCounts.push(expected);
+                }
+                
+                return { labels, histogramCounts: counts, expectedCounts };
+            }
+            
+            // === 3. Отрисовка через Chart.js (уничтожение предыдущего) ===
+            function renderChart(labels, histogramData, expectedData, mean, sigma) {
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: `Гистограмма (10 000 точек, μ=${mean}, σ=${sigma})`,
+                                data: histogramData,
+                                type: 'bar',
+                                backgroundColor: 'rgba(76, 217, 100, 0.55)',
+                                borderColor: '#4cd964',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                barPercentage: 0.9,
+                                categoryPercentage: 1.0,
+                                yAxisID: 'y',
+                            },
+                            {
+                                label: 'Теоретическая кривая нормального распределения',
+                                data: expectedData,
+                                type: 'line',
+                                borderColor: '#ffb347',
+                                backgroundColor: 'rgba(255, 180, 71, 0.05)',
+                                borderWidth: 3,
+                                pointRadius: 0,
+                                pointHoverRadius: 3,
+                                fill: false,
+                                tension: 0.3,
+                                borderDash: [5, 4],
+                                yAxisID: 'y',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: '#0f0f1a',
+                                titleColor: '#e2e8ff',
+                                bodyColor: '#b9c7ff',
+                                borderColor: '#4cd964',
+                                borderWidth: 1
+                            },
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#cfdfff',
+                                    font: { size: 12, weight: '500' },
+                                    boxWidth: 14,
+                                    padding: 12
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Значение переменной',
+                                    color: '#9aa9d6',
+                                    font: { weight: 'bold', size: 12 }
+                                },
+                                ticks: {
+                                    color: '#bdc7f0',
+                                    maxRotation: 45,
+                                    autoSkip: true,
+                                    maxTicksLimit: 12
+                                },
+                                grid: { color: 'rgba(70, 80, 120, 0.2)' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Частота (количество точек)',
+                                    color: '#9aa9d6',
+                                    font: { weight: 'bold', size: 12 }
+                                },
+                                ticks: { color: '#bdc7f0', stepSize: 'auto' },
+                                grid: { color: 'rgba(70, 80, 120, 0.25)' },
+                                beginAtZero: true
+                            }
+                        },
+                        elements: {
+                            bar: { backgroundColor: 'rgba(76, 217, 100, 0.65)' }
+                        }
+                    }
+                });
+            }
+            
+            // === 4. Валидация, генерация и построение графика ===
+            function generateAndPlot() {
+                // Очищаем предыдущее сообщение об ошибке
+                errorDiv.innerHTML = '';
+                
+                // Получаем значения
+                let muRaw = muInput.value.trim();
+                let sigmaRaw = sigmaInput.value.trim();
+                
+                if (muRaw === '') {
+                    errorDiv.innerHTML = '❌ Ошибка: поле "Среднее (μ)" не может быть пустым.';
+                    return;
+                }
+                if (sigmaRaw === '') {
+                    errorDiv.innerHTML = '❌ Ошибка: поле "Стандартное отклонение (σ)" не может быть пустым.';
+                    return;
+                }
+                
+                const mu = parseFloat(muRaw);
+                const sigma = parseFloat(sigmaRaw);
+                
+                if (isNaN(mu)) {
+                    errorDiv.innerHTML = '❌ Ошибка: среднее (μ) должно быть числом.';
+                    return;
+                }
+                if (isNaN(sigma) || sigma <= 0) {
+                    errorDiv.innerHTML = '❌ Ошибка: стандартное отклонение (σ) должно быть положительным числом (> 0).';
+                    return;
+                }
+                
+                // Дополнительное предупреждение при очень большом σ
+                if (sigma > 1000) {
+                    errorDiv.innerHTML = '⚠️ Предупреждение: σ > 1000. Гистограмма может быть неинформативной из-за слишком широкого разброса.';
+                    // продолжаем выполнение (только предупреждение)
+                } else {
+                    // если предупреждения нет, но мог остаться старый текст — оставляем очищенным
+                    if (errorDiv.innerHTML.includes('⚠️')) errorDiv.innerHTML = '';
+                }
+                
+                // Генерация 10000 нормальных случайных чисел
+                const sampleCount = 10000;
+                let generatedData;
+                try {
+                    generatedData = generateNormalSamples(mu, sigma, sampleCount);
+                } catch (err) {
+                    errorDiv.innerHTML = '❌ Критическая ошибка при генерации случайных чисел: ' + err.message;
+                    return;
+                }
+                
+                if (!generatedData.length) {
+                    errorDiv.innerHTML = '❌ Ошибка генерации: массив данных пуст.';
+                    return;
+                }
+                
+                // Построение гистограммы с 40 интервалами (bins)
+                const bins = 40;
+                const { labels, histogramCounts, expectedCounts } = buildHistogramAndCurve(generatedData, mu, sigma, bins);
+                
+                // Дополнительная проверка на бины (защита от некорректной ширины)
+                if (histogramCounts.length === 0 || labels.length === 0) {
+                    errorDiv.innerHTML = '❌ Ошибка расчёта гистограммы: пустые бины. Попробуйте другие параметры.';
+                    return;
+                }
+                
+                // Отрисовка графика
+                renderChart(labels, histogramCounts, expectedCounts, mu, sigma);
+            }
+            
+            // Обработчик кнопки
+            generateBtn.addEventListener('click', () => {
+                generateAndPlot();
+            });
+            
+            // Инициализация при загрузке: построить график для значений по умолчанию (μ=0, σ=1)
+            window.addEventListener('DOMContentLoaded', () => {
+                // Валидация полей по умолчанию: значения уже подставлены (0 и 1)
+                generateAndPlot();
+            });
+            
+            // Дополнительно: если пользователь нажал Enter в любом поле, можно тоже строить
+            const inputs = [muInput, sigmaInput];
+            inputs.forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        generateAndPlot();
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
