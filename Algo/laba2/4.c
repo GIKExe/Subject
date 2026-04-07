@@ -15,9 +15,9 @@ int main() {
 	bool bus = true;
 	bool star = false;
 	for (int i = 1; i < n+1; i++) {
-		if (g[i] == 1) c++;
-		if (g[i] > 2) bus = false;
-		if (g[i] == m) star = true;
+		if (g[i] == 1) {c++;}
+		else if (g[i] == m) {star = true;}
+		else if (g[i] > 2) {bus = false;}
 	}
 		
 	if (star && c == n-1) {
