@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -12,7 +13,9 @@ namespace fs = std::filesystem;
 using namespace std;
 
 struct Record {
-    string nickname, uuid, reg_date;
+    string nickname;
+    string uuid;
+    string reg_date;
     int level;
     float hours;
     bool vac_ban;
@@ -41,7 +44,7 @@ struct Record {
     }
 };
 
-Record parseCSV(const string& line) {
+Record parse(const string& line) {
     stringstream ss(line);
     string item;
     Record r;
@@ -60,8 +63,11 @@ Record parseCSV(const string& line) {
 }
 
 string serialize(const Record& r) {
+    stringstream ss;
+    ss << fixed << setprecision(3) << r.hours;
+
     return r.nickname + "," + r.uuid + "," + r.reg_date + "," + 
-           to_string(r.level) + "," + to_string(r.hours) + "," + (r.vac_ban ? "true" : "false");
+           to_string(r.level) + "," + ss.str() + "," + (r.vac_ban ? "true" : "false");
 }
 
 struct MergeNode {
@@ -70,7 +76,7 @@ struct MergeNode {
 };
 
 void external_sort(string inputPath, int keyIdx, bool asc) {
-    const size_t ROWS_PER_RUN = 200000; // ~60-80МБ, гарантированно влезет в 100МБ
+    const size_t ROWS_PER_RUN = 450000; // оценка памяти 
     string tempDir = "temp";
     
     if (fs::exists(tempDir)) fs::remove_all(tempDir);
@@ -79,8 +85,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
     ifstream dataFile(inputPath);
     if (!dataFile.is_open()) throw runtime_error("Файл " + inputPath + " не найден!");
 
-    string line, header;
-    if (!getline(dataFile, header)) return; // Пропуск заголовка
+    string line;
 
     vector<Record> buffer;
     int runCount = 0;
@@ -90,14 +95,14 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 
     while (getline(dataFile, line)) {
         if (line.empty()) continue;
-        buffer.push_back(parseCSV(line));
+        buffer.push_back(parse(line));
 
         if (buffer.size() >= ROWS_PER_RUN) {
             sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
                 return Record::isOrdered(a, b, keyIdx, asc); 
             });
             
-            ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp");
+            ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp", ios::binary);
             for (const auto& r : buffer) out << serialize(r) << "\n";
             buffer.clear();
             cout << "  Сформирована часть " << runCount << endl;
@@ -108,7 +113,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
         sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
             return Record::isOrdered(a, b, keyIdx, asc); 
         });
-        ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp");
+        ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp", ios::binary);
         for (const auto& r : buffer) out << serialize(r) << "\n";
     }
     dataFile.close();
@@ -129,13 +134,12 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
     
     priority_queue<MergeNode, vector<MergeNode>, decltype(cmp)> pq(cmp);
     vector<ifstream*> openFiles;
-    ofstream outFile("sorted.txt");
-    outFile << header << "\n"; // Возвращаем заголовок
+    ofstream outFile("sorted.txt", ios::binary);
 
     for (int i = 0; i < runCount; ++i) {
-        auto* f = new ifstream(tempDir + "/r" + to_string(i) + ".tmp");
+        auto* f = new ifstream(tempDir + "/r" + to_string(i) + ".tmp", ios::binary);
         if (getline(*f, line)) {
-            pq.push({parseCSV(line), i});
+            pq.push({parse(line), i});
         }
         openFiles.push_back(f);
     }
@@ -146,7 +150,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
         outFile << serialize(top.rec) << "\n";
 
         if (getline(*openFiles[top.fileIndex], line)) {
-            pq.push({parseCSV(line), top.fileIndex});
+            pq.push({parse(line), top.fileIndex});
         }
     }
 

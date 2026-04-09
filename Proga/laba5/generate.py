@@ -128,24 +128,12 @@ def gen_date_and_hours():
 	x = chunk_time * random()
 	y = (chunk_time - x) * random() * 0.8 / 3600
 	dt = datetime.fromtimestamp(x + start_time)
-	return dt.strftime('%Y.%m.%d'), round(atan_transform(y), 3)
-
-
-# id_mask = list("0123456789abcdefghijklmnopqrstuvwxyz")
-# def gen_id():
-# 	return "".join([choice(id_mask) for _ in range(8)])
+	return dt.strftime('%Y.%m.%d'), f"{atan_transform(y):.3f}" 
 
 
 def gen_line():
 	nick = choice(list(nicks.keys()))
-	# id = gen_id()
-	# while True:
-	# 	if id not in nicks[nick]:
-	# 		break
-	# 	id = gen_id()
-	# nicks[nick].append(id)
 	date, hours = gen_date_and_hours()
-	hours = str(hours)
 	level = str(randint(0, 100))
 	ban = ("true" if randint(0, 99) <= 4 else "false")
 	id = str(uuid.uuid5(uuid.NAMESPACE_DNS, ','.join([nick, date, level, hours, ban])))
@@ -167,6 +155,7 @@ if __name__ == "__main__":
 	chunk_time = end_time - start_time
 
 	_start_time = time()
+	_start_el_time = time()
 	with open("data.csv", "wb") as file:
 		file.seek(0)
 		size_max = (1024**3)*1.05
@@ -175,10 +164,11 @@ if __name__ == "__main__":
 		size = 0
 		while size < size_max:
 			if size > chunk*counter:
-				print(counter, "% ", round(time() - _start_time, 3), " сек.", sep="")
-				_start_time = time()
+				print(f'{counter}% {time() - _start_el_time:.3f} сек.')
+				_start_el_time = time()
 				counter+=1
 			line = gen_line()
 			file.write(line.encode("ascii"))
 			file.flush()
 			size += len(line)
+	print(f'Генерация заняла: {time() - _start_time:.3f} сек.')
