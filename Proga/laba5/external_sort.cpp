@@ -45,29 +45,58 @@ struct Record {
 };
 
 Record parse(const string& line) {
-    stringstream ss(line);
-    string item;
     Record r;
-    getline(ss, r.nickname, ',');
-    getline(ss, r.uuid, ',');
-    getline(ss, r.reg_date, ',');
-    
-    auto safe_stoi = [](string s) { try { return s.empty() ? 0 : stoi(s); } catch(...) { return 0; } };
-    auto safe_stof = [](string s) { try { return s.empty() ? 0.0f : stof(s); } catch(...) { return 0.0f; } };
+    size_t start = 0;
+    size_t end;
 
-    if (getline(ss, item, ',')) r.level = safe_stoi(item);
-    if (getline(ss, item, ',')) r.hours = safe_stof(item);
-    if (getline(ss, item, ',')) r.vac_ban = (item == "1" || item == "true");
-    
+    // Лямбда для извлечения следующего поля (CSV подстрока)
+    auto next_field = [&]() -> string_view {
+        end = line.find(',', start);
+        string_view field = string_view(line).substr(start, end - start);
+        start = (end == string::npos) ? end : end + 1;
+        return field;
+    };
+
+    // Извлекаем строки напрямую
+    r.nickname = string(next_field());
+    r.uuid = string(next_field());
+    r.reg_date = string(next_field());
+
+    // Быстрая конвертация чисел
+    auto f_level = next_field();
+    r.level = atoi(f_level.data());
+
+    auto f_hours = next_field();
+    r.hours = strtof(f_hours.data(), nullptr);
+
+    auto f_vac = next_field();
+    r.vac_ban = (f_vac == "true");
+
     return r;
 }
 
 string serialize(const Record& r) {
-    stringstream ss;
-    ss << fixed << setprecision(3) << r.hours;
+    string res;
+    res.reserve(128); // Предварительно выделяем память, чтобы избежать реаллокаций
 
-    return r.nickname + "," + r.uuid + "," + r.reg_date + "," + 
-           to_string(r.level) + "," + ss.str() + "," + (r.vac_ban ? "true" : "false");
+    res += r.nickname;
+    res += ",";
+    res += r.uuid;
+    res += ",";
+    res += r.reg_date;
+    res += ",";
+    res += to_string(r.level);
+    res += ",";
+
+    // Для float с заданной точностью используем char-буфер (быстрее чем stringstream)
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.3f", r.hours);
+    res += buf;
+
+    res += ",";
+    res += (r.vac_ban ? "true" : "false");
+
+    return res;
 }
 
 struct MergeNode {
