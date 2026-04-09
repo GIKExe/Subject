@@ -11,30 +11,36 @@
 namespace fs = std::filesystem;
 using namespace std;
 
-// Структура данных CSV
 struct Record {
-    string nickname;
-    string uuid;
-    string reg_date;
+    string nickname, uuid, reg_date;
     int level;
     float hours;
     bool vac_ban;
 
-    // Метод для сравнения по индексу колонки
-    static bool compare(const Record& a, const Record& b, int keyIndex) {
-        switch (keyIndex) {
-            case 0: return a.nickname < b.nickname;
-            case 1: return a.uuid < b.uuid;
-            case 2: return a.reg_date < b.reg_date;
-            case 3: return a.level < b.level;
-            case 4: return a.hours < b.hours;
-            case 5: return a.vac_ban < b.vac_ban;
-            default: return a.uuid < b.uuid;
+    // СТРОГОЕ СРАВНЕНИЕ: возвращает true, если 'a' должно идти ПЕРЕД 'b'
+    static bool isOrdered(const Record& a, const Record& b, int keyIndex, bool ascending) {
+        if (ascending) {
+            switch (keyIndex) {
+                case 0: return a.nickname < b.nickname;
+                case 1: return a.uuid < b.uuid;
+                case 2: return a.reg_date < b.reg_date;
+                case 3: return a.level < b.level;
+                case 4: return a.hours < b.hours;
+                default: return a.vac_ban < b.vac_ban;
+            }
+        } else {
+            switch (keyIndex) {
+                case 0: return a.nickname > b.nickname;
+                case 1: return a.uuid > b.uuid;
+                case 2: return a.reg_date > b.reg_date;
+                case 3: return a.level > b.level;
+                case 4: return a.hours > b.hours;
+                default: return a.vac_ban > b.vac_ban;
+            }
         }
     }
 };
 
-// Вспомогательные функции
 Record parseCSV(const string& line) {
     stringstream ss(line);
     string item;
@@ -42,82 +48,96 @@ Record parseCSV(const string& line) {
     getline(ss, r.nickname, ',');
     getline(ss, r.uuid, ',');
     getline(ss, r.reg_date, ',');
-    getline(ss, item, ','); r.level = stoi(item);
-    getline(ss, item, ','); r.hours = stof(item);
-    getline(ss, item, ','); r.vac_ban = (item == "1" || item == "true");
+    
+    auto safe_stoi = [](string s) { try { return s.empty() ? 0 : stoi(s); } catch(...) { return 0; } };
+    auto safe_stof = [](string s) { try { return s.empty() ? 0.0f : stof(s); } catch(...) { return 0.0f; } };
+
+    if (getline(ss, item, ',')) r.level = safe_stoi(item);
+    if (getline(ss, item, ',')) r.hours = safe_stof(item);
+    if (getline(ss, item, ',')) r.vac_ban = (item == "1" || item == "true");
+    
     return r;
 }
 
 string serialize(const Record& r) {
     return r.nickname + "," + r.uuid + "," + r.reg_date + "," + 
-           to_string(r.level) + "," + to_string(r.hours) + "," + (r.vac_ban ? "1" : "0");
+           to_string(r.level) + "," + to_string(r.hours) + "," + (r.vac_ban ? "true" : "false");
 }
 
-// Структура для итератора слияния
 struct MergeNode {
     Record rec;
     int fileIndex;
-    bool operator>(const MergeNode& other) const {
-        return false; // Логика сравнения определяется динамически в priority_queue
-    }
 };
 
-void external_sort(string inputPath, int keyIndex) {
-    const size_t MEMORY_LIMIT = 100 * 1024 * 1024; // 100MB
+void external_sort(string inputPath, int keyIdx, bool asc) {
+    const size_t ROWS_PER_RUN = 200000; // ~60-80МБ, гарантированно влезет в 100МБ
     string tempDir = "temp";
+    
+    if (fs::exists(tempDir)) fs::remove_all(tempDir);
     fs::create_directory(tempDir);
 
+    ifstream dataFile(inputPath);
+    if (!dataFile.is_open()) throw runtime_error("Файл " + inputPath + " не найден!");
+
+    string line, header;
+    if (!getline(dataFile, header)) return; // Пропуск заголовка
+
+    vector<Record> buffer;
+    int runCount = 0;
     auto start = chrono::high_resolution_clock::now();
 
-    // --- ЭТАП 1: РАЗБИЕНИЕ (RUN GENERATION) ---
-    ifstream dataFile(inputPath);
-    string line;
-    vector<Record> buffer;
-    size_t currentMem = 0;
-    int runCount = 0;
+    cout << "[1/2] Этап разбиения: чтение и сортировка частей..." << endl;
 
     while (getline(dataFile, line)) {
+        if (line.empty()) continue;
         buffer.push_back(parseCSV(line));
-        currentMem += line.size() + sizeof(Record); // Грубая оценка памяти
 
-        if (currentMem >= MEMORY_LIMIT) {
-            sort(buffer.begin(), buffer.end(), [keyIndex](const Record& a, const Record& b) {
-                return Record::compare(a, b, keyIndex);
+        if (buffer.size() >= ROWS_PER_RUN) {
+            sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
+                return Record::isOrdered(a, b, keyIdx, asc); 
             });
-            ofstream out(tempDir + "/run_" + to_string(runCount++) + ".txt");
+            
+            ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp");
             for (const auto& r : buffer) out << serialize(r) << "\n";
             buffer.clear();
-            currentMem = 0;
+            cout << "  Сформирована часть " << runCount << endl;
         }
     }
-    // Сброс остатка
+
     if (!buffer.empty()) {
-        sort(buffer.begin(), buffer.end(), [keyIndex](const Record& a, const Record& b) {
-            return Record::compare(a, b, keyIndex);
+        sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
+            return Record::isOrdered(a, b, keyIdx, asc); 
         });
-        ofstream out(tempDir + "/run_" + to_string(runCount++) + ".txt");
+        ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp");
         for (const auto& r : buffer) out << serialize(r) << "\n";
     }
     dataFile.close();
 
     auto splitEnd = chrono::high_resolution_clock::now();
-    cout << "Phase 1 (Split) finished in: " 
-         << chrono::duration_cast<chrono::seconds>(splitEnd - start).count() << "s\n";
+    cout << "Этап разбиения завершен за " << chrono::duration_cast<chrono::seconds>(splitEnd - start).count() << " сек." << endl;
 
-    // --- ЭТАП 2: СЛИЯНИЕ (MERGE) ---
-    auto compareNodes = [keyIndex](const MergeNode& a, const MergeNode& b) {
-        return !Record::compare(a.rec, b.rec, keyIndex); // invert for min-heap
+    // --- ЭТАП СЛИЯНИЯ ---
+    cout << "[2/2] Этап слияния: объединение " << runCount << " файлов..." << endl;
+
+    // Компаратор для priority_queue (делаем min-heap на основе нашего порядка)
+    auto cmp = [keyIdx, asc](const MergeNode& a, const MergeNode& b) {
+        // priority_queue возвращает элемент, для которого компаратор дает false.
+        // Чтобы первым выходил элемент, который должен стоять в начале (isOrdered == true),
+        // нужно инвертировать логику для очереди:
+        return Record::isOrdered(b.rec, a.rec, keyIdx, asc);
     };
-    priority_queue<MergeNode, vector<MergeNode>, decltype(compareNodes)> pq(compareNodes);
     
-    vector<ifstream*> runs(runCount);
+    priority_queue<MergeNode, vector<MergeNode>, decltype(cmp)> pq(cmp);
+    vector<ifstream*> openFiles;
     ofstream outFile("sorted.txt");
+    outFile << header << "\n"; // Возвращаем заголовок
 
     for (int i = 0; i < runCount; ++i) {
-        runs[i] = new ifstream(tempDir + "/run_" + to_string(i) + ".txt");
-        if (getline(*runs[i], line)) {
+        auto* f = new ifstream(tempDir + "/r" + to_string(i) + ".tmp");
+        if (getline(*f, line)) {
             pq.push({parseCSV(line), i});
         }
+        openFiles.push_back(f);
     }
 
     while (!pq.empty()) {
@@ -125,34 +145,33 @@ void external_sort(string inputPath, int keyIndex) {
         pq.pop();
         outFile << serialize(top.rec) << "\n";
 
-        if (getline(*runs[top.fileIndex], line)) {
+        if (getline(*openFiles[top.fileIndex], line)) {
             pq.push({parseCSV(line), top.fileIndex});
         }
     }
 
-    // Очистка
     outFile.close();
-    for (int i = 0; i < runCount; ++i) {
-        runs[i]->close();
-        delete runs[i];
-    }
+    for (auto f : openFiles) { f->close(); delete f; }
     fs::remove_all(tempDir);
 
-    auto mergeEnd = chrono::high_resolution_clock::now();
-    cout << "Phase 2 (Merge) finished in: " 
-         << chrono::duration_cast<chrono::seconds>(mergeEnd - splitEnd).count() << "s\n";
+    auto end = chrono::high_resolution_clock::now();
+    cout << "Слияние завершено за " << chrono::duration_cast<chrono::seconds>(end - splitEnd).count() << " сек." << endl;
+    cout << "Итоговое время: " << chrono::duration_cast<chrono::seconds>(end - start).count() << " сек." << endl;
 }
 
 int main() {
-    int key;
-    cout << "Choose key (0: Nick, 1: UUID, 2: Date, 3: Lvl, 4: Hours, 5: VAC): ";
-    cin >> key;
-    
+    int k, o;
+    cout << "--- Внешняя сортировка CSV ---\n";
+    cout << "Ключ (0:Ник, 1:UUID, 2:Дата, 3:Lvl, 4:Часы, 5:VAC): "; 
+    if(!(cin >> k)) return 0;
+    cout << "Порядок (0:Убывание, 1:Возрастание): "; 
+    if(!(cin >> o)) return 0;
+
     try {
-        external_sort("data.csv", key);
-        cout << "Sorting complete. Result in sorted.txt" << endl;
+        external_sort("data.csv", k, (o == 1));
+        cout << "\nРезультат в файле sorted.txt" << endl;
     } catch (const exception& e) {
-        cerr << "Error: " << e.what() << endl;
+        cerr << "\nОШИБКА: " << e.what() << endl;
     }
     return 0;
 }
