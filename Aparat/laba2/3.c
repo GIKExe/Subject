@@ -2,27 +2,60 @@
 #include <stdbool.h>
 
 #define RESET_PIN 2
-#define CLOCK_PIN 3
+#define CLOCK_PIN_H 3
+#define CLOCK_PIN_L 4
+#define DELAY_MS 1
+
+typedef unsigned char u8;
+
+bool is_harshad_number(u8 num) {
+	u8 x = num % 10 + num / 10 % 10;
+	return num % x == 0;
+}
+
+void ping(u8 pin) {
+	digitalWrite(pin, 1);
+	delay(DELAY_MS);
+	digitalWrite(pin, 0);
+	delay(DELAY_MS);
+}
+
+bool checker(u8 pin, u8 num, u8 *x) {
+	if ((*x) == num) return false;
+	(*x) = ((*x) + 1) % 10;
+	digitalWrite(pin, 1);
+	return true;
+}
 
 void setup() {
-	Serial.begin(9600);
 	for (int i = 0; i < 3; i++) pinMode(i+2, OUTPUT);
-	digitalWrite(RESET_PIN, 1);
-	delay(10);
-	digitalWrite(RESET_PIN, 0);
-	for (int i = 0; i < 10; i++) {
-		digitalWrite(CLOCK_PIN, 1);
-		delay(5);
-		digitalWrite(CLOCK_PIN, 0);
-		delay(500);
-	}
+	ping(RESET_PIN);
 }
 
+u8 num = 1;
+u8 num_l = 0, num_h = 0;
 void loop() {
+	if (!is_harshad_number(num)) {
+		num++;
+		return;
+	}
 
+	if (num > 99) {
+		ping(RESET_PIN);
+		num = 1;
+		num_l = 0;
+		num_h = 0;
+	}
+
+	if (checker(CLOCK_PIN_L, num % 10, &num_l)
+	 || checker(CLOCK_PIN_H, (num / 10) % 10, &num_h)) {
+		delay(1);
+		digitalWrite(CLOCK_PIN_L, 0);
+		digitalWrite(CLOCK_PIN_H, 0);
+		delay(1);
+		return;
+	}
+
+	delay(1500);
+	num++;
 }
-
-
-
-
-// https://pandia.org/text/79/290/images/image006_48.gif
