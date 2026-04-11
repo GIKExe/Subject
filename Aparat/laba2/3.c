@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #define RESET_PIN 2
-#define CLICK_PIN 3
+#define CLOCK_PIN 3
 
 void setup() {
 	Serial.begin(9600);
@@ -11,9 +11,9 @@ void setup() {
 	delay(10);
 	digitalWrite(RESET_PIN, 0);
 	for (int i = 0; i < 10; i++) {
-		digitalWrite(CLICK_PIN, 1);
+		digitalWrite(CLOCK_PIN, 1);
 		delay(5);
-		digitalWrite(CLICK_PIN, 0);
+		digitalWrite(CLOCK_PIN, 0);
 		delay(500);
 	}
 }
