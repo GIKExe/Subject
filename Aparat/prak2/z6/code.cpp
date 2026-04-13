@@ -1,5 +1,3 @@
-
-
 #define DS 4
 #define ST_CP 5
 #define SH_CP 6
@@ -7,6 +5,7 @@
 
 typedef unsigned char u8;
 typedef unsigned short u16;
+
 const u8 digit[] = {
 	// G -> A
 	0b01111110, // 0
@@ -21,27 +20,7 @@ const u8 digit[] = {
 	0b11011110, // 9
 };
 
-bool is_lucky(u8 num) {
-	if (num % 2 == 0) return false;
-	u8 pos = (num + 1) / 2;
-	if (pos % 3 == 0) return false;
-	pos -= pos / 3;
-	if (pos % 7 == 0) return false;
-	pos -= pos / 7;
-	if (pos % 9 == 0) return false;
-	pos -= pos / 9;
-	if (pos % 13 == 0) return false;
-	pos -= pos / 13;
-	if (pos % 15 == 0) return false;
-	pos -= pos / 15;
-	if (pos % 21 == 0) return false;
-	pos -= pos / 21;
-	if (pos % 25 == 0) return false;
-	pos -= pos / 25;
-	if (pos % 31 == 0) return false;
-	pos -= pos / 31;
-	return true; 
-}
+u8 g[100];
 
 void setup() {
 	Serial.begin(9600);
@@ -49,6 +28,20 @@ void setup() {
 	pinMode(ST_CP, OUTPUT);
 	pinMode(SH_CP, OUTPUT);
 	pinMode(MR, OUTPUT);
+
+	for (u8 i = 0; i < 100; i++)
+		g[i] = (i % 2 == 0 ? 0 : i);
+	for (u8 i = 3; i < 100; i++) {
+		if (g[i] == 0) continue;
+		u8 counter = 0;
+		for (u8 j = 0; j < 100; j++) {
+			if (g[j] != 0) counter++;
+			if (counter == i) {
+				g[j] = 0;
+				counter = 0;
+			}
+		}
+	}
 
 	digitalWrite(MR, LOW);
 	delay(10);
@@ -71,12 +64,11 @@ void loop() {
 			digitalWrite(ST_CP, 0);
 			index = 15;
 			drawing = false;
-			delay(1000);
+			delay(1500);
 		}
 	} else {
-		num++;
-		if (num > 99) num = 1;
-		if (is_lucky(num)) {
+		num = (num + 1) % 100;
+		if (g[num] != 0) {
 			x = ((u16)digit[num / 10 % 10] << 8) | (u16)digit[num % 10];
 			drawing = true;
 		}
