@@ -4,7 +4,6 @@
 #define RESET_PIN 2
 #define CLOCK_PIN_H 3
 #define CLOCK_PIN_L 4
-#define DELAY_MS 1
 
 typedef unsigned char u8;
 
@@ -15,9 +14,7 @@ bool is_harshad_number(u8 num) {
 
 void ping(u8 pin) {
 	digitalWrite(pin, 1);
-	delay(DELAY_MS);
 	digitalWrite(pin, 0);
-	delay(DELAY_MS);
 }
 
 bool checker(u8 pin, u8 num, u8 *x) {
@@ -49,10 +46,8 @@ void loop() {
 
 	if (checker(CLOCK_PIN_L, num % 10, &num_l)
 	 || checker(CLOCK_PIN_H, (num / 10) % 10, &num_h)) {
-		delay(1);
 		digitalWrite(CLOCK_PIN_L, 0);
 		digitalWrite(CLOCK_PIN_H, 0);
-		delay(1);
 		return;
 	}
 
