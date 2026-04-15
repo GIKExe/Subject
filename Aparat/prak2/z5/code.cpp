@@ -1,4 +1,3 @@
-
 #include <stdbool.h>
 
 #define LE 2
