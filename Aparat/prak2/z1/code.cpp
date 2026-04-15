@@ -4,57 +4,57 @@
 #define LEDS 3
 
 void blinking(int s) {
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < LEDS; j++)
-			digitalWrite(j+START_LED+s*LEDS, HIGH);
-		delay(500);
-		for (int j = 0; j < LEDS; j++)
-			digitalWrite(j+START_LED+s*LEDS, LOW);
-		delay(500);
-	}
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < LEDS; j++)
+      digitalWrite(j+START_LED+s*LEDS, HIGH);
+    delay(500);
+    for (int j = 0; j < LEDS; j++)
+      digitalWrite(j+START_LED+s*LEDS, LOW);
+    delay(500);
+  }
 }
 
 char counters[PLAYERS];
 bool buttons[PLAYERS];
 
 void setup() {
-	Serial.begin(9600);
-	srand(micros());
-	pinMode(BUZZER_PIN, OUTPUT);
-	for (int i = 0; i < LEDS*PLAYERS; i++)
-		pinMode(i+START_LED, OUTPUT);
-	for (int i = 0; i < PLAYERS; i++) {
-		pinMode(i+2, INPUT_PULLUP);
-		counters[i] = 0;
-	}
+  Serial.begin(9600);
+  srand(micros());
+  pinMode(BUZZER_PIN, OUTPUT);
+  for (int i = 0; i < LEDS*PLAYERS; i++)
+    pinMode(i+START_LED, OUTPUT);
+  for (int i = 0; i < PLAYERS; i++) {
+    pinMode(i+2, INPUT_PULLUP);
+    counters[i] = 0;
+  }
 }
 
 void loop(){
-	delay(random(2000, 7000));
-	// 3 ÐºÐ¸Ð»Ð¾Ð³ÐµÑ€Ñ†Ð°, 250 Ð¼Ð¸Ð»Ð»Ð¸ÑÐµÐºÑƒÐ½Ð´
-	tone(BUZZER_PIN, 3000, 250); 
+  delay(random(2000, 7000));
+  // 3 êèëîãåðöà, 250 ìèëëèñåêóíä
+  tone(BUZZER_PIN, 3000, 250); 
 
-	for (int i = 0; i < PLAYERS; i++)
-		buttons[i] = true;
+  for (int i = 0; i < PLAYERS; i++)
+    buttons[i] = true;
 
-	for (int p = 0;; p = (p+1) % PLAYERS) {
-		// ÐµÑÐ»Ð¸ Ð¸Ð³Ñ€Ð¾Ðº Ð½Ð¾Ð¼ÐµÑ€ Â«playerÂ» Ð½Ð°Ð¶Ð°Ð» ÐºÐ½Ð¾Ð¿ÐºÑƒ...
-		bool btn = !digitalRead(p+2);
-		if (btn && !buttons[p]) {
-			// ...Ð²ÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ ÐµÐ³Ð¾ ÑÐ²ÐµÑ‚Ð¾Ð´Ð¸Ð¾Ð´ Ð¸ ÑÐ¸Ð³Ð½Ð°Ð» Ð¿Ð¾Ð±ÐµÐ´Ñ‹ Ð½Ð° 1 ÑÐµÐº
-			digitalWrite(counters[p]+START_LED+p*LEDS, HIGH);
-			counters[p]++;
-			tone(BUZZER_PIN, 4000, 1000);
-			delay(1000);
-			if (counters[p] >= LEDS) {
-				blinking(p);
-				for (int i = 0; i < LEDS*PLAYERS; i++)
-					digitalWrite(i+START_LED, LOW);
-				for (int i = 0; i < PLAYERS; i++)
-					counters[i] = 0;
-			}
-			break;
-		}
-		buttons[p] = btn;
-	}
+  for (int p = 0;; p = (p+1) % PLAYERS) {
+    // åñëè èãðîê íîìåð «player» íàæàë êíîïêó...
+    bool btn = !digitalRead(p+2);
+    if (btn && !buttons[p]) {
+      // ...âêëþ÷àåì åãî ñâåòîäèîä è ñèãíàë ïîáåäû íà 1 ñåê
+      digitalWrite(counters[p]+START_LED+p*LEDS, HIGH);
+      counters[p]++;
+      tone(BUZZER_PIN, 4000, 1000);
+      delay(1000);
+      if (counters[p] >= LEDS) {
+        blinking(p);
+        for (int i = 0; i < LEDS*PLAYERS; i++)
+          digitalWrite(i+START_LED, LOW);
+        for (int i = 0; i < PLAYERS; i++)
+          counters[i] = 0;
+      }
+      break;
+    }
+    buttons[p] = btn;
+  }
 }

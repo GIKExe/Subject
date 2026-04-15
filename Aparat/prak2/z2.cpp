@@ -1,9 +1,8 @@
 #include "Arduino.h"
-
 #include <LiquidCrystal.h>
 
-// РїРёРЅС‹ РЅР° РњР­Р›Рў РёРґСѓС‚ 
-// СЃ 14 РїРѕ 1, 16, 15.
+// пины на МЭЛТ идут 
+// с 14 по 1, 16, 15.
 #define RS_PIN 2
 #define E_PIN 3
 #define D4 8
@@ -15,7 +14,7 @@ LiquidCrystal lcd(RS_PIN, E_PIN, D4, D5, D6, D7);
 
 void setup() {
   lcd.begin(16, 2);
-	lcd.clear();
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("\xA5" "BAH");
   lcd.setCursor(0, 1);

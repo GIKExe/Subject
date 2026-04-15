@@ -15,65 +15,65 @@ String text;
 int textLength;
 
 String getRuntime() {
-	char buffer[17];
-	sprintf(buffer, "Elapsed: %5d s", millis() / 1000);
-	return String(buffer);
+  char buffer[17];
+  sprintf(buffer, "Elapsed: %5d s", millis() / 1000);
+  return String(buffer);
 }
 
 void buildText() {
-	text = "Battery voltage: ";
-	float voltage = analogRead(BATTERY_PIN) / 1023.0 * 10.0;
-	if (voltage > 0.1) voltage += DIODE_DROP;
-	text += String(voltage);
-	text += " Volts";
-	textLength = text.length();
-	text += "               ";
+  text = "Battery voltage: ";
+  float voltage = analogRead(BATTERY_PIN) / 1023.0 * 10.0;
+  if (voltage > 0.1) voltage += DIODE_DROP;
+  text += String(voltage);
+  text += " Volts";
+  textLength = text.length();
+  text += "               ";
 }
 
 void setup() {
-	Serial.begin(9600);
-	lcd.init();
-	lcd.backlight();
-	lcd.clear();
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
 
-	pinMode(BATTERY_PIN, INPUT);
-	pinMode(BUTTON_PIN, INPUT_PULLUP);
-	startTime = millis();
+  pinMode(BATTERY_PIN, INPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  startTime = millis();
 
-	buildText();
+  buildText();
 }
 
 void loop() {
-	static bool lastButtonState = HIGH;
-	bool buttonState = digitalRead(BUTTON_PIN);
-	if (lastButtonState == HIGH && buttonState == LOW) {
-		directionForward = !directionForward;
-		delay(10);
-	}
-	lastButtonState = buttonState;
+  static bool lastButtonState = HIGH;
+  bool buttonState = digitalRead(BUTTON_PIN);
+  if (lastButtonState == HIGH && buttonState == LOW) {
+    directionForward = !directionForward;
+    delay(10);
+  }
+  lastButtonState = buttonState;
 
-	
-	lcd.setCursor(0, 0);
-	String displayText = text.substring(scrollPosition, scrollPosition + 16);
-	lcd.print(displayText);
+  
+  lcd.setCursor(0, 0);
+  String displayText = text.substring(scrollPosition, scrollPosition + 16);
+  lcd.print(displayText);
 
 
-	if (directionForward) {
-		scrollPosition++;
-		if (scrollPosition >= textLength) {
-			scrollPosition = 0;
-			buildText();
-		}
-	} else {
-		scrollPosition--;
-		if (scrollPosition < 0) {
-			scrollPosition = textLength - 1;
-			buildText();
-		}
-	}
+  if (directionForward) {
+    scrollPosition++;
+    if (scrollPosition >= textLength) {
+      scrollPosition = 0;
+      buildText();
+    }
+  } else {
+    scrollPosition--;
+    if (scrollPosition < 0) {
+      scrollPosition = textLength - 1;
+      buildText();
+    }
+  }
 
-	lcd.setCursor(0, 1);
-	lcd.print(getRuntime());
+  lcd.setCursor(0, 1);
+  lcd.print(getRuntime());
 
-	delay(300);
+  delay(300);
 }
