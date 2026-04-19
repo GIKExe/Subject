@@ -1,0 +1,51 @@
+% \subsection*{Задание 1: Любовный треугольник}
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{1.pdf}
+% 	\caption{Схема алгоритма задачи}
+% \end{figure}
+% \newpage
+% \lstinputlisting[caption={Исходный код программы (C)}]{1.c}
+% \noindent \indent
+% Данное задание можно решить просто пройдясь по всем элементам массива и сравнить текущий индекс элемента
+% с индексом котрый возвращает цепочка из трёх элементов.
+% \newpage
+% \subsection*{Задание 2: Грегор и игра в пешки}
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{2.pdf}
+% 	\caption{Схема алгоритма задачи}
+% \end{figure}
+% \newpage
+% \lstinputlisting[caption={Исходный код программы (C)}]{2.c}
+% \noindent \indent
+% Это задание можно решить сразу при вводе, проверя прямой ход пешки или наискосок если там стоит вражеская пешка.
+% \newpage
+% \subsection*{Задание 3: Великий побег Авраама}
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{3.pdf}
+% 	\caption{Схема алгоритма задачи}
+% \end{figure}
+% \newpage
+% \lstinputlisting[caption={Исходный код программы (C)}]{3.c}
+% \noindent \indent
+% Для решения этого задания надо вывести лабиринт в котором k точек старта приводят к выходу, а остальные нет.
+% Для этого можно завести счётчик и сводить к выходу влево-вверх пока счётчик меньше k, а иначе сводидть вправо-вниз
+% и развернуть последнюю влево.
+% \newpage
+% \subsection*{Задание 4: Топология сети}
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{4.pdf}
+% 	\caption{Схема алгоритма задачи}
+% \end{figure}
+% \newpage
+% \lstinputlisting[caption={Исходный код программы (C)}]{4.c}
+% \newpage
+% \noindent \indent
+% Это задание легко решается, путём проверки графа на степени вершин, то есть для шины - 
+% две вершини имеют степень 1, а остальные степень 2. Для кольца - все вершины имеют степень 2.
+% Так как уже известно что граф связан, то нет необходимости проверять шину и кольцо. Для звезды -
+% одна вершина имеет $m$ степень, а остальные степень 1.
+% % \newpage

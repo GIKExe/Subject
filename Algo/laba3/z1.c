@@ -1,4 +1,3 @@
-// https://codeforces.com/problemset/problem/1869/B
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
