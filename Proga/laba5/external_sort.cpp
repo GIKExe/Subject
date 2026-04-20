@@ -8,6 +8,7 @@
 #include <queue>
 #include <filesystem>
 #include <chrono>
+#include <functional>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -19,28 +20,27 @@ struct Record {
 	int level;
 	float hours;
 	bool vac_ban;
+};
 
-	// СТРОГОЕ СРАВНЕНИЕ: возвращает true, если 'a' должно идти ПЕРЕД 'b'
-	static bool isOrdered(const Record& a, const Record& b, int keyIndex, bool ascending) {
-		if (ascending) {
-			switch (keyIndex) {
-				case 0: return a.nickname < b.nickname;
-				case 1: return a.uuid < b.uuid;
-				case 2: return a.reg_date < b.reg_date;
-				case 3: return a.level < b.level;
-				case 4: return a.hours < b.hours;
-				default: return a.vac_ban < b.vac_ban;
-			}
-		} else {
-			switch (keyIndex) {
-				case 0: return a.nickname > b.nickname;
-				case 1: return a.uuid > b.uuid;
-				case 2: return a.reg_date > b.reg_date;
-				case 3: return a.level > b.level;
-				case 4: return a.hours > b.hours;
-				default: return a.vac_ban > b.vac_ban;
-			}
-		}
+// Двумерный массив лямбд: [направление][ключ]
+// Направление: 0 = descending (убывание), 1 = ascending (возрастание)
+using Comparator = bool(*)(const Record&, const Record&);
+static const Comparator comparators[2][6] = {
+	{ // descending (по убыванию) — индекс 0
+		[](const Record& a, const Record& b) { return a.nickname > b.nickname; },
+		[](const Record& a, const Record& b) { return a.uuid > b.uuid; },
+		[](const Record& a, const Record& b) { return a.reg_date > b.reg_date; },
+		[](const Record& a, const Record& b) { return a.level > b.level; },
+		[](const Record& a, const Record& b) { return a.hours > b.hours; },
+		[](const Record& a, const Record& b) { return a.vac_ban > b.vac_ban; }
+	},
+	{ // ascending (по возрастанию) — индекс 1
+		[](const Record& a, const Record& b) { return a.nickname < b.nickname; },
+		[](const Record& a, const Record& b) { return a.uuid < b.uuid; },
+		[](const Record& a, const Record& b) { return a.reg_date < b.reg_date; },
+		[](const Record& a, const Record& b) { return a.level < b.level; },
+		[](const Record& a, const Record& b) { return a.hours < b.hours; },
+		[](const Record& a, const Record& b) { return a.vac_ban < b.vac_ban; }
 	}
 };
 
@@ -105,6 +105,7 @@ struct MergeNode {
 };
 
 void external_sort(string inputPath, int keyIdx, bool asc) {
+	auto cmp_isOrdered = comparators[asc][keyIdx];
 	const size_t ROWS_PER_RUN = 450000; // оценка памяти 
 	string tempDir = "temp";
 	
@@ -127,9 +128,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 		buffer.push_back(parse(line));
 
 		if (buffer.size() >= ROWS_PER_RUN) {
-			sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
-				return Record::isOrdered(a, b, keyIdx, asc); 
-			});
+			sort(buffer.begin(), buffer.end(), cmp_isOrdered);
 			
 			ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp", ios::binary);
 			for (const auto& r : buffer) out << serialize(r) << "\n";
@@ -139,9 +138,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 	}
 
 	if (!buffer.empty()) {
-		sort(buffer.begin(), buffer.end(), [&](const Record& a, const Record& b){ 
-			return Record::isOrdered(a, b, keyIdx, asc); 
-		});
+		sort(buffer.begin(), buffer.end(), cmp_isOrdered);
 		ofstream out(tempDir + "/r" + to_string(runCount++) + ".tmp", ios::binary);
 		for (const auto& r : buffer) out << serialize(r) << "\n";
 	}
@@ -154,11 +151,11 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 	cout << "[2/2] Этап слияния: объединение " << runCount << " файлов..." << endl;
 
 	// Компаратор для priority_queue (делаем min-heap на основе нашего порядка)
-	auto cmp = [keyIdx, asc](const MergeNode& a, const MergeNode& b) {
+	auto cmp = [&](const MergeNode& a, const MergeNode& b) {
 		// priority_queue возвращает элемент, для которого компаратор дает false.
 		// Чтобы первым выходил элемент, который должен стоять в начале (isOrdered == true),
 		// нужно инвертировать логику для очереди:
-		return Record::isOrdered(b.rec, a.rec, keyIdx, asc);
+		return cmp_isOrdered(b.rec, a.rec);
 	};
 	
 	priority_queue<MergeNode, vector<MergeNode>, decltype(cmp)> pq(cmp);
@@ -210,3 +207,7 @@ int main() {
 }
 
 // g++ -std=c++17 external_sort.cpp -o external_sort
+
+// #define Export __declspec(dllexport)
+// extern "C" {}
+// g++ -shared -o mod1.dll mod1.cpp -static -Os -s
