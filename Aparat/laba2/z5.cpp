@@ -31,7 +31,7 @@ void loop() {
   }
 
   if ((active[2]) && (active[0] || active[1])) {
-    Serial.println("РђРєС‚РёРІР°С†РёСЏ РјРѕС‚РѕСЂР°!");
+    Serial.println("Активация мотора!");
     digitalWrite(leftDirPin, 1);
     analogWrite(leftSpeedPin, 127);
   } else {
