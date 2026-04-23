@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <chrono>
 #include <functional>
+#include <cstring>
+#include <charconv>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -20,6 +22,11 @@ struct Record {
 	int level;
 	float hours;
 	bool vac_ban;
+};
+
+struct MergeNode {
+	Record rec;
+	int fileIndex;
 };
 
 // Двумерный массив лямбд: [направление][ключ]
@@ -50,11 +57,26 @@ Record parse(const string& line) {
 	size_t end;
 
 	// Лямбда для извлечения следующего поля (CSV подстрока)
-	auto next_field = [&]() -> string_view {
-		end = line.find(',', start);
-		string_view field = string_view(line).substr(start, end - start);
-		start = (end == string::npos) ? end : end + 1;
-		return field;
+	// auto next_field = [&]() -> string_view {
+	// 	end = line.find(',', start);
+	// 	string_view field = string_view(line).substr(start, end - start);
+	// 	start = (end == string::npos) ? end : end + 1;
+	// 	return field;
+	// };
+	
+	auto next_field = [&]() -> std::string_view {
+		const char* str = line.data() + start;
+		size_t remaining = line.size() - start;
+		const char* comma = (const char*)memchr(str, ',', remaining);
+		if (comma) {
+			std::string_view field(str, comma - str);
+			start = comma - line.data() + 1;
+			return field;
+		} else {
+			std::string_view field(str, remaining);
+			start = line.size();
+			return field;
+		}
 	};
 
 	// Извлекаем строки напрямую
@@ -64,10 +86,10 @@ Record parse(const string& line) {
 
 	// Быстрая конвертация чисел
 	auto f_level = next_field();
-	r.level = atoi(f_level.data());
+	std::from_chars(f_level.data(), f_level.data() + f_level.size(), r.level);
 
 	auto f_hours = next_field();
-	r.hours = strtof(f_hours.data(), nullptr);
+	std::from_chars(f_hours.data(), f_hours.data() + f_hours.size(), r.hours);
 
 	auto f_vac = next_field();
 	r.vac_ban = (f_vac == "true");
@@ -98,11 +120,6 @@ string serialize(const Record& r) {
 
 	return res;
 }
-
-struct MergeNode {
-	Record rec;
-	int fileIndex;
-};
 
 void external_sort(string inputPath, int keyIdx, bool asc) {
 	auto cmp_isOrdered = comparators[asc][keyIdx];
@@ -145,7 +162,7 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 	dataFile.close();
 
 	auto splitEnd = chrono::high_resolution_clock::now();
-	cout << "Этап разбиения завершен за " << chrono::duration_cast<chrono::seconds>(splitEnd - start).count() << " сек." << endl;
+	cout << "Этап разбиения завершен за " << chrono::duration_cast<chrono::milliseconds>(splitEnd - start).count() / 1000.0 << " сек." << endl;
 
 	// --- ЭТАП СЛИЯНИЯ ---
 	cout << "[2/2] Этап слияния: объединение " << runCount << " файлов..." << endl;
@@ -185,8 +202,8 @@ void external_sort(string inputPath, int keyIdx, bool asc) {
 	fs::remove_all(tempDir);
 
 	auto end = chrono::high_resolution_clock::now();
-	cout << "Слияние завершено за " << chrono::duration_cast<chrono::seconds>(end - splitEnd).count() << " сек." << endl;
-	cout << "Итоговое время: " << chrono::duration_cast<chrono::seconds>(end - start).count() << " сек." << endl;
+	cout << "Слияние завершено за " << chrono::duration_cast<chrono::milliseconds>(end - splitEnd).count() / 1000.0 << " сек." << endl;
+	cout << "Итоговое время: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() / 1000.0 << " сек." << endl;
 }
 
 int main() {
@@ -210,4 +227,4 @@ int main() {
 
 // #define Export __declspec(dllexport)
 // extern "C" {}
-// g++ -shared -o mod1.dll mod1.cpp -static -Os -s
+// g++ -shared -o external_sort.dll external_sort.cpp -static -Os -s
