@@ -16,12 +16,12 @@ namespace fs = std::filesystem;
 using namespace std;
 
 struct Record {
-	string nickname;
-	string uuid;
-	string reg_date;
+	char nickname[24];
+	char uuid[40];
+	char reg_date[16];
 	int level;
 	float hours;
-	bool vac_ban;
+	bool vac_ban; // bool = 4 byte
 };
 
 struct MergeNode {
@@ -80,9 +80,9 @@ Record parse(const string& line) {
 	};
 
 	// Извлекаем строки напрямую
-	r.nickname = string(next_field());
-	r.uuid = string(next_field());
-	r.reg_date = string(next_field());
+	// r.nickname = string(next_field());
+	// r.uuid = string(next_field());
+	// r.reg_date = string(next_field());
 
 	// Быстрая конвертация чисел
 	auto f_level = next_field();
