@@ -18,9 +18,12 @@ using namespace std;
 using namespace std::chrono;
 
 
-#define BUFFER_SIZE (1024*1024*10)   // 20 MiB
-#define RECORDS_PER_TEMP (1'000'000) // 75 MiB 
+const size_t READER_SIZE = 1024*1024*10; // 20 MiB
+const size_t MAX_RECORDS = 1'000'000;    // 75 MiB 
+const size_t WRITER_SIZE = 1024*1024*95; // 95 MiB
 
+const char TRUE[] = "true";
+const char FALSE[] = "false";
 
 struct __attribute__((packed)) Record {
 	char nickname[24];
@@ -92,20 +95,43 @@ void parse(char **index, Record &rec) {
 }
 
 
-void serialize(char *buffer, Record &rec) {
+void serialize(char **index, Record &rec) {
+	int i;
 
+	for (i = 0; rec.nickname[i] != 0; i++, (*index)++)
+		(**index) = rec.nickname[i];
+	(**index) = ',';
+	(*index)++;
+
+	for (i = 0; rec.uuid[i] != 0; i++, (*index)++)
+		(**index) = rec.uuid[i];
+	(**index) = ',';
+	(*index)++;
+
+	for (i = 0; rec.reg_date[i] != 0; i++, (*index)++)
+		(**index) = rec.reg_date[i];
+	(**index) = ',';
+	(*index)++;
+
+	(*index) += sprintf(*index, "%d,", rec.level);
+	(*index) += sprintf(*index, "%.3f,", rec.hours);
+
+	const char *buf = (bool)rec.vac_ban ? TRUE : FALSE;
+	for (i = 0; buf[i] != 0; i++, (*index)++)
+		(**index) = buf[i];
+	(**index) = '\n';
+	(*index)++;
 }
 
 
-void external_sort(const char *path, int keyIndex, bool ascending) {
+void external_sort(const char *path, int keyIndex, bool ascending, function<void(float)> progressCallback) {
 	ifstream input;
 	ofstream output;
+	Comparator cmp = comparators[ascending][keyIndex];
+	string tempDir = "temp";
 
 	auto sortStart = high_resolution_clock::now();
 
-	Comparator cmp = comparators[ascending][keyIndex];
-
-	string tempDir = "temp";
 	fs::create_directories(tempDir);
 
 	input.open(path, std::ios::binary);
@@ -116,17 +142,19 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 
 	size_t totalFiles = 0;
 	size_t totalRecords = 0;
-	char *buffer = new char[BUFFER_SIZE+1]; // delete[] buffer
-	Record *records = new Record[RECORDS_PER_TEMP]; // delete[] records
+	char *buffer = new char[READER_SIZE+1];
+	char *index;
+	Record *records = new Record[MAX_RECORDS];
 	
+	progressCallback(0);
 	while (1) {
 		// чтение куска файла.
-		input.read(buffer, BUFFER_SIZE);
+		input.read(buffer, READER_SIZE);
 		std::streamsize bytesRead = input.gcount();
 		if (bytesRead == 0) break;
 		// востановление указателя
 		size_t currentFilePos = input.tellg();
-		char* index = buffer + (bytesRead-1);
+		index = buffer + (bytesRead-1);
 		for (; *index != '\n'; index--) // не очень безопасно
 			currentFilePos--;
 		*(index+1) = 0;
@@ -137,8 +165,8 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 		while (*index != 0) {
 			parse(&index, records[totalRecords]);
 			totalRecords++;
-			if (totalRecords == RECORDS_PER_TEMP) {
-				cout << "Прогресс: " << readIt / totalFileSize * 100 << '%' << endl;
+			if (totalRecords == MAX_RECORDS) {
+				progressCallback(readIt / totalFileSize * 100);
 				sort(records, records + totalRecords, cmp);
 				output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 				output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
@@ -150,7 +178,7 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 	input.close();
 
 	if (totalRecords > 0) {
-		cout << "Прогресс: " << readIt / totalFileSize * 100 << '%' << endl;
+		progressCallback(readIt / totalFileSize * 100);
 		sort(records, records + totalRecords, cmp);
 		output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 		output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
@@ -161,10 +189,80 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 	delete[] records;
 	auto splitEnd = chrono::high_resolution_clock::now();
 	cout << "Разбиение завершено за: " << chrono::duration_cast<chrono::milliseconds>(splitEnd - sortStart).count() / 1000.0 << " сек." << endl;
+
+	progressCallback(0);
+	auto inverted_cmp = [&](const MergeNode& a, const MergeNode& b) {
+		return cmp(b.rec, a.rec);
+	};
+
+	priority_queue<MergeNode, vector<MergeNode>, decltype(inverted_cmp)> pq(inverted_cmp);
+	vector<ifstream*> openFiles;
+	output.open("sorted.txt", ios::binary);
+
+	for (int i = 0; i < totalFiles; ++i) {
+		auto* file = new ifstream(tempDir + "/r" + to_string(i) + ".tmp", ios::binary);
+		Record rec;
+		file->read((char*)&rec, sizeof(Record));
+		if (file->gcount() == sizeof(Record)) {
+			pq.push({rec, i});
+		}
+		openFiles.push_back(file);
+	}
+
+	readIt = 0;
+	buffer = new char[WRITER_SIZE];
+	index = buffer;
+	size_t size;
+
+	while (!pq.empty()) {
+		MergeNode top = pq.top();
+		pq.pop();
+		serialize(&index, top.rec);
+		size = index - buffer;
+		if (size > WRITER_SIZE-1000) {
+			output.write(buffer, size);
+			readIt += size;
+			progressCallback(readIt / totalFileSize * 100);
+			index = buffer;
+		}
+
+		Record rec;
+		openFiles[top.fileIndex]->read((char*)&rec, sizeof(Record));
+		if (openFiles[top.fileIndex]->gcount() == sizeof(Record)) {
+			pq.push({rec, top.fileIndex});
+		}
+	}
+
+	if (index > buffer) {
+		output.write(buffer, size);
+		readIt += size;
+		progressCallback(readIt / totalFileSize * 100);
+	}
+
+	delete[] buffer;
+	for (auto file : openFiles) { file->close(); delete file; }
+	fs::remove_all(tempDir);
+	output.close();
+
+	auto mergeEnd = chrono::high_resolution_clock::now();
+	cout << "Разбиение завершено за: " << chrono::duration_cast<chrono::milliseconds>(mergeEnd - splitEnd).count() / 1000.0 << " сек." << endl;
+	cout << "Общее время сортировки: " << chrono::duration_cast<chrono::milliseconds>(mergeEnd - sortStart).count() / 1000.0 << " сек." << endl;
 }
 
+
 int main() {
+	auto progress = [](float p) {
+		printf("Прогресс: %.2f%%\n", p);
+	};
+
 	const int _unused_xxx = sizeof(Record);
-	external_sort("data.csv", 0, true);
+	// ascending (по возрастанию = true)
+	// 0 nickname
+	// 1 uuid
+	// 2 reg_date
+	// 3 level
+	// 4 hours
+	// 5 vac_ban
+	external_sort("data.csv", 5, false, progress);
 	return 0;
 }
