@@ -1,26 +1,19 @@
-// #include <cstdio>
-// #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <vector>
 #include <algorithm>
-// #include <chrono>
 #include <filesystem>
 #include <queue>
-// #include <functional>
 #include <string>
-// #include <iomanip>
 #include <iostream>
-// #include <cmath>
 
 #include "external_sort.h"
 
-namespace fs = std::filesystem;
 using namespace std;
-// using namespace std::chrono;
+namespace fs = filesystem;
 
 
-const size_t READER_SIZE = 1024*1024*10; // 20 MiB
+const size_t READER_SIZE = 1024*1024*10; // 10 MiB
 const size_t MAX_RECORDS = 1'000'000;    // 75 MiB 
 const size_t WRITER_SIZE = 1024*1024*95; // 95 MiB
 
@@ -36,6 +29,7 @@ struct __attribute__((packed)) Record {
 	bool vac_ban;
 };
 
+const size_t RECORD_SIZE = sizeof(Record);
 
 struct MergeNode {
 	Record rec;
@@ -170,7 +164,7 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 			if (totalRecords == MAX_RECORDS) {
 				sort(records, records + totalRecords, cmp);
 				output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
-				output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
+				output.write(reinterpret_cast<char*>(records), RECORD_SIZE * totalRecords);
 				output.close();
 				progressCallback(readIt / totalFileSize);
 				totalRecords = 0;
@@ -182,7 +176,7 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 	if (totalRecords > 0) {
 		sort(records, records + totalRecords, cmp);
 		output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
-		output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
+		output.write(reinterpret_cast<char*>(records), RECORD_SIZE * totalRecords);
 		output.close();
 		progressCallback(readIt / totalFileSize);
 	}
@@ -202,8 +196,8 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 	for (int i = 0; i < totalFiles; ++i) {
 		auto* file = new ifstream(tempDir + "/r" + to_string(i) + ".tmp", ios::binary);
 		Record rec;
-		file->read((char*)&rec, sizeof(Record));
-		if (file->gcount() == sizeof(Record)) {
+		file->read((char*)&rec, RECORD_SIZE);
+		if (file->gcount() == RECORD_SIZE) {
 			pq.push({rec, i});
 		}
 		openFiles.push_back(file);
@@ -227,8 +221,8 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 		}
 
 		Record rec;
-		openFiles[top.fileIndex]->read((char*)&rec, sizeof(Record));
-		if (openFiles[top.fileIndex]->gcount() == sizeof(Record)) {
+		openFiles[top.fileIndex]->read((char*)&rec, RECORD_SIZE);
+		if (openFiles[top.fileIndex]->gcount() == RECORD_SIZE) {
 			pq.push({rec, top.fileIndex});
 		}
 	}
@@ -251,7 +245,6 @@ int main() {
 		printf("Прогресс: %.2f%%\n", p * 100);
 	};
 
-	const int _unused_xxx = sizeof(Record);
 	// ascending (по возрастанию = true)
 	// 0 nickname
 	// 1 uuid
@@ -264,6 +257,6 @@ int main() {
 }
 
 // как приложение:
-// g++ external_sort.cpp -o external_sort
+// g++ external_sort.cpp -o ext
 // как библиотеку:
 // g++ -shared -o external_sort.dll external_sort.cpp -static -Os -s
