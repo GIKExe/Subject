@@ -31,7 +31,7 @@ struct __attribute__((packed)) Record {
 	char reg_date[11];
 	char level;
 	float hours;
-	char vac_ban;
+	bool vac_ban;
 };
 
 
@@ -87,9 +87,9 @@ void parse(char **index, Record &rec) {
 	rec.hours = strtod(*index, index);
 	(*index)++;
 
-	rec.vac_ban = 0;
+	rec.vac_ban = false;
 	if (memcmp(*index, "true", 4) == 0)
-		rec.vac_ban = 1;
+		rec.vac_ban = true;
 	while ((**index) != '\n') (*index)++;
 	(*index)++;
 }
@@ -116,7 +116,7 @@ void serialize(char **index, Record &rec) {
 	(*index) += sprintf(*index, "%d,", rec.level);
 	(*index) += sprintf(*index, "%.3f,", rec.hours);
 
-	const char *buf = (bool)rec.vac_ban ? TRUE : FALSE;
+	const char *buf = rec.vac_ban ? TRUE : FALSE;
 	for (i = 0; buf[i] != 0; i++, (*index)++)
 		(**index) = buf[i];
 	(**index) = '\n';
@@ -263,6 +263,6 @@ int main() {
 	// 3 level
 	// 4 hours
 	// 5 vac_ban
-	external_sort("data.csv", 5, false, progress);
+	external_sort("data.csv", 2, false, progress);
 	return 0;
 }
