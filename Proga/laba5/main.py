@@ -4,36 +4,38 @@ import csv
 import os
 import ctypes
 
-# Импорт локального модуля (предполагается, что файл generate.py рядом)
+# Импорт локального модуля
 try:
 	import generate
 except ImportError:
 	generate = None
-
 
 class App(tk.Tk):
 	def __init__(self):
 		super().__init__()
 
 		self.title("CSV Processor & External Sorter")
-		self.geometry("1100x600")
+		self.geometry("1150x650")
 		self.configure(bg="#f0f0f0")
 
 		# Переменные состояния
 		self.file_path = tk.StringVar(value="")
-		self.num_lines_in_file = 0
+		self.num_lines_in_file = tk.IntVar(value=0)
 		
 		# Загрузка DLL
 		self.lib = None
 		if os.path.exists("external_sort.dll"):
-			self.lib = ctypes.CDLL("./external_sort.dll")
-			self.lib.external_sort.argtypes = [
-				ctypes.c_char_p, 
-				ctypes.c_int, 
-				ctypes.c_bool, 
-				ctypes.CFUNCTYPE(None, ctypes.c_float)
-			]
-			self.lib.external_sort.restype = None
+			try:
+				self.lib = ctypes.CDLL("./external_sort.dll")
+				self.lib.external_sort.argtypes = [
+					ctypes.c_char_p, 
+					ctypes.c_int, 
+					ctypes.c_bool, 
+					ctypes.CFUNCTYPE(None, ctypes.c_float)
+				]
+				self.lib.external_sort.restype = None
+			except Exception as e:
+				print(f"Ошибка загрузки DLL: {e}")
 
 		self.init_ui()
 
@@ -41,7 +43,7 @@ class App(tk.Tk):
 		# --- Сверху: Прогресс-бар ---
 		style = ttk.Style()
 		style.theme_use('default')
-		style.configure("Green.Horizontal.TProgressbar", foreground='green', background='green')
+		style.configure("Green.Horizontal.TProgressbar", foreground='#28a745', background='#28a745')
 		
 		self.progress = ttk.Progressbar(self, orient="horizontal", length=100, 
 										mode="determinate", style="Green.Horizontal.TProgressbar")
@@ -51,7 +53,7 @@ class App(tk.Tk):
 		main_container = tk.Frame(self, bg="#f0f0f0")
 		main_container.pack(side="top", fill="both", expand=True, padx=10, pady=10)
 
-		# --- Левая часть: Панель управления ---
+		# --- Левая часть ---
 		self.left_panel = tk.Frame(main_container, bg="#f0f0f0")
 		self.left_panel.pack(side="left", fill="y", padx=(0, 10))
 
@@ -61,8 +63,13 @@ class App(tk.Tk):
 		
 		tk.Label(file_info_frame, text="Файл: ", font=("Arial", 9, "bold"), bg="#f0f0f0").pack(side="top", anchor="w")
 		self.path_label = tk.Label(file_info_frame, text="Не выбран", fg="red", 
-								   wraplength=200, justify="left", bg="#f0f0f0")
+								   wraplength=220, justify="left", bg="#f0f0f0")
 		self.path_label.pack(side="top", anchor="w")
+
+		# НОВОЕ: Лейбл для отображения количества строк
+		self.lines_count_label = tk.Label(file_info_frame, text="Кол-во строк: 0", 
+										  font=("Arial", 9), fg="#555", bg="#f0f0f0")
+		self.lines_count_label.pack(side="top", anchor="w", pady=(2, 0))
 
 		# 2. Кнопка выбора
 		tk.Button(self.left_panel, text="Выбрать файл", command=self.select_file).pack(fill="x", pady=5)
@@ -101,20 +108,18 @@ class App(tk.Tk):
 
 		ttk.Separator(self.left_panel, orient="horizontal").pack(fill="x", pady=10)
 
-		# 8. Радиокнопки
+		# 8-10. Настройки отображения
 		self.file_target = tk.StringVar(value="orig")
 		tk.Radiobutton(self.left_panel, text="Исходный файл", variable=self.file_target, 
 					   value="orig", bg="#f0f0f0").pack(anchor="w")
 		tk.Radiobutton(self.left_panel, text="Сортированный файл", variable=self.file_target, 
 					   value="sort", bg="#f0f0f0").pack(anchor="w")
 
-		# 9. Номер строки
 		tk.Label(self.left_panel, text="Начать со строки:", bg="#f0f0f0").pack(anchor="w")
 		self.start_line_entry = tk.Entry(self.left_panel)
 		self.start_line_entry.insert(0, "0")
 		self.start_line_entry.pack(fill="x", pady=2)
 
-		# 10. Кол-во строк
 		tk.Label(self.left_panel, text="Кол-во строк:", bg="#f0f0f0").pack(anchor="w")
 		self.count_line_entry = tk.Entry(self.left_panel)
 		self.count_line_entry.insert(0, "10")
@@ -127,6 +132,7 @@ class App(tk.Tk):
 		right_panel = tk.Frame(main_container)
 		right_panel.pack(side="right", fill="both", expand=True)
 
+		# Ширина ровно 100 символов
 		self.output_text = tk.Text(right_panel, width=100, wrap="none", state="disabled", font=("Courier New", 10))
 		scroll_y = tk.Scrollbar(right_panel, orient="vertical", command=self.output_text.yview)
 		scroll_x = tk.Scrollbar(right_panel, orient="horizontal", command=self.output_text.xview)
@@ -148,28 +154,35 @@ class App(tk.Tk):
 			return False
 
 	def update_progress(self, value):
-		# value: 0.0 to 1.0
 		self.progress['value'] = value * 100
 		self.update_idletasks()
 
 	def select_file(self):
 		path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+
 		if path:
 			self.file_path.set(path)
 			self.path_label.config(text=path, fg="gray")
+			
 			# Активируем элементы
 			self.key_combo.config(state="readonly")
 			self.dir_combo.config(state="readonly")
 			self.sort_btn.config(state="normal")
+			
+			# Подсчет строк
 			self.count_total_lines(path)
-		else:
-			self.path_label.config(text="Не выбран", fg="red")
-			self.sort_btn.config(state="disabled")
+		# else:
+		# 	self.path_label.config(text="Не выбран", fg="red")
+		# 	self.lines_count_label.config(text="Кол-во строк: 0")
+		# 	self.sort_btn.config(state="disabled")
 
 	def count_total_lines(self, path):
 		try:
 			with open(path, 'r', encoding='utf-8') as f:
-				self.num_lines_in_file = sum(1 for _ in f)
+				# Более надежный способ для CSV
+				count = sum(1 for _ in f)
+				self.num_lines_in_file.set(count)
+				self.lines_count_label.config(text=f"Кол-во строк: {count}")
 		except Exception as e:
 			messagebox.showerror("Ошибка", f"Не удалось прочитать файл: {e}")
 
@@ -179,48 +192,36 @@ class App(tk.Tk):
 			return
 		
 		if generate:
-			size_mb = int(self.size_entry.get()) * (1024**2)
-			generate.generate(self.file_path.get(), size_mb, self.update_progress)
+			size_bytes = int(self.size_entry.get()) * (1024**2)
+			generate.generate(self.file_path.get(), size_bytes, self.update_progress)
 			self.count_total_lines(self.file_path.get())
 			messagebox.showinfo("Готово", "Генерация завершена")
 		else:
 			messagebox.showerror("Ошибка", "Модуль 'generate' не найден")
 
-	def check_csv_validity(self, path):
-		# Проверка на \n в конце
-		with open(path, 'rb+') as f:
-			f.seek(-1, os.SEEK_END)
-			if f.read(1) != b'\n':
-				return False, "Файл должен заканчиваться символом переноса строки (LF)."
-		
-		# Проверка структуры CSV (просто пробуем прочитать первую строку)
-		try:
-			with open(path, 'r', newline='', encoding='utf-8') as f:
-				reader = csv.reader(f)
-				next(reader)
-			return True, ""
-		except Exception as e:
-			return False, f"Невалидная структура CSV: {e}"
-
 	def run_sort(self):
 		path = self.file_path.get()
-		is_valid, err_msg = self.check_csv_validity(path)
-		if not is_valid:
-			messagebox.showerror("Ошибка валидации", err_msg)
+		# Проверка на \n в конце
+		try:
+			with open(path, 'rb+') as f:
+				f.seek(-1, os.SEEK_END)
+				if f.read(1) != b'\n':
+					messagebox.showerror("Ошибка", "Файл должен заканчиваться символом переноса строки (LF).")
+					return
+		except Exception as e:
+			messagebox.showerror("Ошибка доступа", str(e))
 			return
 
 		if not self.lib:
 			messagebox.showerror("Ошибка", "DLL не загружена")
 			return
 
-		# Подготовка калбэка для C
 		CMPFUNC = ctypes.CFUNCTYPE(None, ctypes.c_float)
 		callback_c = CMPFUNC(self.update_progress)
-
+		
 		key_idx = self.key_combo.current()
-		ascending = bool(self.dir_combo.current()) # 1: По возрастанию (True), 0: По убыванию (False)
+		ascending = bool(self.dir_combo.current())
 
-		# Вызов
 		try:
 			self.lib.external_sort(path.encode('utf-8'), key_idx, ascending, callback_c)
 			messagebox.showinfo("Успех", "Сортировка завершена")
@@ -241,14 +242,6 @@ class App(tk.Tk):
 			start_line = int(self.start_line_entry.get())
 			count = int(self.count_line_entry.get())
 			
-			# Предварительная проверка (обновим кол-во строк для конкретного файла)
-			with open(target, 'r', encoding='utf-8') as f:
-				total = sum(1 for _ in f)
-			
-			if start_line >= total:
-				messagebox.showwarning("Внимание", f"Начальная строка ({start_line}) за пределами файла (всего {total})")
-				return
-
 			self.output_text.config(state="normal")
 			self.output_text.delete("1.0", tk.END)
 
@@ -262,7 +255,7 @@ class App(tk.Tk):
 			self.output_text.config(state="disabled")
 
 		except ValueError:
-			messagebox.showerror("Ошибка", "Введите корректные числа в поля строк")
+			messagebox.showerror("Ошибка", "Введите корректные числа")
 
 if __name__ == "__main__":
 	app = App()

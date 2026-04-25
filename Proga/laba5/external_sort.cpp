@@ -31,7 +31,7 @@ struct __attribute__((packed)) Record {
 	char nickname[24];
 	char uuid[37];
 	char reg_date[11];
-	char level;
+	unsigned int level;
 	float hours;
 	bool vac_ban;
 };
@@ -73,8 +73,10 @@ void parse(char **index, Record &rec) {
 	rec.nickname[i] = 0;
 	(*index)++;
 
-	for (i = 0; (**index) != ','; i++, (*index)++)
+	for (i = 0; (**index) != ','; i++, (*index)++) {
+		// if ((**index) == ' ') continue;
 		rec.uuid[i] = (**index);
+	}
 	rec.uuid[i] = 0;
 	(*index)++; 
 
