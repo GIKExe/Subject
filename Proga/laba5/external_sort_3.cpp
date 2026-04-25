@@ -111,6 +111,7 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 	input.open(path, std::ios::binary);
 	input.seekg(0, std::ios::end);
 	size_t totalFileSize = input.tellg();
+	double readIt = 0;
 	input.seekg(0, std::ios::beg);
 
 	size_t totalFiles = 0;
@@ -128,7 +129,8 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 		char* index = buffer + (bytesRead-1);
 		for (; *index != '\n'; index--) // не очень безопасно
 			currentFilePos--;
-		*(index+1) = 0; // не безопасно
+		*(index+1) = 0;
+		readIt += (index+1) - buffer;
 		input.seekg(currentFilePos, std::ios::beg);
 		// переход к чтению
 		index = buffer;
@@ -136,6 +138,7 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 			parse(&index, records[totalRecords]);
 			totalRecords++;
 			if (totalRecords == RECORDS_PER_TEMP) {
+				cout << "Прогресс: " << readIt / totalFileSize * 100 << '%' << endl;
 				sort(records, records + totalRecords, cmp);
 				output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 				output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
@@ -144,8 +147,10 @@ void external_sort(const char *path, int keyIndex, bool ascending) {
 			}
 		}
 	}
+	input.close();
 
 	if (totalRecords > 0) {
+		cout << "Прогресс: " << readIt / totalFileSize * 100 << '%' << endl;
 		sort(records, records + totalRecords, cmp);
 		output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 		output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
