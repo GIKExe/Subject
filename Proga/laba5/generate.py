@@ -140,6 +140,28 @@ def gen_line():
 	return ",".join([nick, id, date, level, hours, ban]) + "\n"
 
 
+start_time = int(datetime(2000, 1, 1).timestamp())
+end_time = int(datetime.now().timestamp())
+chunk_time = end_time - start_time
+
+
+def generate(path: str, size_max: int, func = None) -> None:
+	with open(path, "wb") as file:
+		file.seek(0)
+		chunk = size_max / 100
+		counter = 0
+		size = 0
+		while size < size_max:
+			if size > chunk*counter:
+				p = size / size_max
+				if p > 1: p = 1.0
+				if func is not None: func(p)
+				counter+=1
+			line = gen_line()
+			file.write(line.encode("ascii"))
+			file.flush()
+			size += len(line)
+
 # файл data.csv через запятую
 # 1 строка: ник
 # 2 строка: айди (uuid)
@@ -148,27 +170,5 @@ def gen_line():
 # 5 флот: кол-во часов (меньше или равно с момента регистрации)
 # 6 бул: вак бан? 
 
-
 if __name__ == "__main__":
-	start_time = int(datetime(2000, 1, 1).timestamp())
-	end_time = int(datetime.now().timestamp())
-	chunk_time = end_time - start_time
-
-	_start_time = time()
-	_start_el_time = time()
-	with open("data.csv", "wb") as file:
-		file.seek(0)
-		size_max = (1024**3)*1.05
-		chunk = size_max / 100
-		counter = 0
-		size = 0
-		while size < size_max:
-			if size > chunk*counter:
-				print(f'{counter}% {time() - _start_el_time:.3f} сек.')
-				_start_el_time = time()
-				counter+=1
-			line = gen_line()
-			file.write(line.encode("ascii"))
-			file.flush()
-			size += len(line)
-	print(f'Генерация заняла: {time() - _start_time:.3f} сек.')
+	generate("data.csv", (1024**3)*1.05)

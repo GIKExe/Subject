@@ -1,21 +1,23 @@
-#include <cstdio>
-#include <cstdlib>
+// #include <cstdio>
+// #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <chrono>
+// #include <chrono>
 #include <filesystem>
 #include <queue>
-#include <functional>
+// #include <functional>
 #include <string>
-#include <iomanip>
+// #include <iomanip>
 #include <iostream>
-#include <cmath>
+// #include <cmath>
+
+#include "external_sort.h"
 
 namespace fs = std::filesystem;
 using namespace std;
-using namespace std::chrono;
+// using namespace std::chrono;
 
 
 const size_t READER_SIZE = 1024*1024*10; // 20 MiB
@@ -124,13 +126,11 @@ void serialize(char **index, Record &rec) {
 }
 
 
-void external_sort(const char *path, int keyIndex, bool ascending, function<void(float)> progressCallback) {
+Export void external_sort(const char *path, int keyIndex, bool ascending, void (*progressCallback)(float)) {
 	ifstream input;
 	ofstream output;
 	Comparator cmp = comparators[ascending][keyIndex];
 	string tempDir = "temp";
-
-	auto sortStart = high_resolution_clock::now();
 
 	fs::create_directories(tempDir);
 
@@ -166,11 +166,11 @@ void external_sort(const char *path, int keyIndex, bool ascending, function<void
 			parse(&index, records[totalRecords]);
 			totalRecords++;
 			if (totalRecords == MAX_RECORDS) {
-				progressCallback(readIt / totalFileSize * 100);
 				sort(records, records + totalRecords, cmp);
 				output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 				output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
 				output.close();
+				progressCallback(readIt / totalFileSize);
 				totalRecords = 0;
 			}
 		}
@@ -178,17 +178,15 @@ void external_sort(const char *path, int keyIndex, bool ascending, function<void
 	input.close();
 
 	if (totalRecords > 0) {
-		progressCallback(readIt / totalFileSize * 100);
 		sort(records, records + totalRecords, cmp);
 		output.open(tempDir + "/r" + to_string(totalFiles++) + ".tmp", ios::binary);
 		output.write(reinterpret_cast<char*>(records), sizeof(Record) * totalRecords);
 		output.close();
+		progressCallback(readIt / totalFileSize);
 	}
 
 	delete[] buffer;
 	delete[] records;
-	auto splitEnd = chrono::high_resolution_clock::now();
-	cout << "Разбиение завершено за: " << chrono::duration_cast<chrono::milliseconds>(splitEnd - sortStart).count() / 1000.0 << " сек." << endl;
 
 	progressCallback(0);
 	auto inverted_cmp = [&](const MergeNode& a, const MergeNode& b) {
@@ -197,7 +195,7 @@ void external_sort(const char *path, int keyIndex, bool ascending, function<void
 
 	priority_queue<MergeNode, vector<MergeNode>, decltype(inverted_cmp)> pq(inverted_cmp);
 	vector<ifstream*> openFiles;
-	output.open("sorted.txt", ios::binary);
+	output.open(string(path) + ".sorted", ios::binary);
 
 	for (int i = 0; i < totalFiles; ++i) {
 		auto* file = new ifstream(tempDir + "/r" + to_string(i) + ".tmp", ios::binary);
@@ -222,7 +220,7 @@ void external_sort(const char *path, int keyIndex, bool ascending, function<void
 		if (size > WRITER_SIZE-1000) {
 			output.write(buffer, size);
 			readIt += size;
-			progressCallback(readIt / totalFileSize * 100);
+			progressCallback(readIt / totalFileSize);
 			index = buffer;
 		}
 
@@ -236,23 +234,19 @@ void external_sort(const char *path, int keyIndex, bool ascending, function<void
 	if (index > buffer) {
 		output.write(buffer, size);
 		readIt += size;
-		progressCallback(readIt / totalFileSize * 100);
+		progressCallback(readIt / totalFileSize);
 	}
 
 	delete[] buffer;
 	for (auto file : openFiles) { file->close(); delete file; }
 	fs::remove_all(tempDir);
 	output.close();
-
-	auto mergeEnd = chrono::high_resolution_clock::now();
-	cout << "Разбиение завершено за: " << chrono::duration_cast<chrono::milliseconds>(mergeEnd - splitEnd).count() / 1000.0 << " сек." << endl;
-	cout << "Общее время сортировки: " << chrono::duration_cast<chrono::milliseconds>(mergeEnd - sortStart).count() / 1000.0 << " сек." << endl;
 }
 
 
 int main() {
 	auto progress = [](float p) {
-		printf("Прогресс: %.2f%%\n", p);
+		printf("Прогресс: %.2f%%\n", p * 100);
 	};
 
 	const int _unused_xxx = sizeof(Record);
@@ -266,3 +260,8 @@ int main() {
 	external_sort("data.csv", 2, false, progress);
 	return 0;
 }
+
+// как приложение:
+// g++ external_sort.cpp -o external_sort
+// как библиотеку:
+// g++ -shared -o external_sort.dll external_sort.cpp -static -Os -s

@@ -2,3 +2,5 @@ data.csv
 sorted.txt
 temp
 .vscode
+__pycache__
+*.sorted
