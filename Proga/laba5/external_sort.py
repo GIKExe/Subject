@@ -75,7 +75,8 @@ def _sort_and_dump(records: np.ndarray, total: int, keyIndex: int, ascending: bo
 	out_path = temp_dir / f"r{file_idx}.tmp"
 	view.tofile(out_path)  # Сброс бинарного дампа
 
-def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: Callable[[float], None]) -> None:
+def external_sort(path: bytes, keyIndex: int, ascending: bool, progressCallback: Callable[[float], None]) -> None:
+	path = path.decode()
 	temp_dir = Path("temp")
 	if temp_dir.exists():
 		shutil.rmtree(temp_dir)
@@ -86,7 +87,6 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 		return
 
 	# Фаза 1: Блочное Чтение и Сортировка (Разделение)
-	# Пиковое потребление памяти здесь: 77.2 МБ (records) + 10 МБ (reader_buf) = ~87.2 МБ
 	records = np.empty(MAX_RECORDS, dtype=record_dtype)
 	reader_buf = bytearray(READER_SIZE)
 	
@@ -112,7 +112,7 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 			f_in.seek(last_newline + 1 - bytes_read, os.SEEK_CUR)
 			read_it += (last_newline + 1)
 			
-			# Парсинг текущего 10 МБ буфера байтовыми операциями (без создания списков)
+			# Парсинг текущего 10 МБ буфера байтовыми операциями
 			idx = 0
 			while idx <= last_newline:
 				if total_records == MAX_RECORDS:
@@ -158,7 +158,7 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 		total_files += 1
 		progressCallback(read_it / total_file_size)
 
-	# ОСВОБОЖДЕНИЕ ПАМЯТИ: перед аллокацией 95 МБ удаляем массив records (77 МБ)
+	# ОСВОБОЖДЕНИЕ ПАМЯТИ
 	del records
 	del reader_buf
 	gc.collect()
@@ -178,7 +178,6 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 			heapq.heappush(pq, MergeNode(key, i, raw_bytes, ascending))
 		open_files.append(f)
 
-	# Пиковое потребление памяти здесь: 95 МБ (writer_buf)
 	writer_buf = bytearray(WRITER_SIZE)
 	writer_pos = 0
 	read_out_size = 0
@@ -245,6 +244,4 @@ if __name__ == "__main__":
 	# 3 = level
 	# 4 = hours
 	# 5 = vac_ban
-	
-	# Пример вызова, эквивалентный `external_sort("data.csv", 2, false, progress);`
 	external_sort("data.csv", 0, True, progress)

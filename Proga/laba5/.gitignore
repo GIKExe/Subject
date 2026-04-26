@@ -1,6 +1,5 @@
-data.csv
-sorted.txt
+*.csv
+*.sorted
 temp
 .vscode
 __pycache__
-*.sorted

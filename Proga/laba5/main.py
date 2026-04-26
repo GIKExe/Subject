@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from threading import Thread
 import csv
 import os
 import ctypes
@@ -23,20 +24,24 @@ class App(tk.Tk):
 		self.num_lines_in_file = tk.IntVar(value=0)
 		
 		# Загрузка DLL
-		self.lib = None
+		self.mod1 = None
 		if os.path.exists("external_sort.dll"):
 			try:
-				self.lib = ctypes.CDLL("./external_sort.dll")
-				self.lib.external_sort.argtypes = [
+				self.mod1 = ctypes.CDLL("./external_sort.dll")
+				self.mod1.external_sort.argtypes = [
 					ctypes.c_char_p, 
 					ctypes.c_int, 
 					ctypes.c_bool, 
 					ctypes.CFUNCTYPE(None, ctypes.c_float)
 				]
-				self.lib.external_sort.restype = None
+				self.mod1.external_sort.restype = None
 			except Exception as e:
 				print(f"Ошибка загрузки DLL: {e}")
 
+		import external_sort as mod2
+		self.mod2 = mod2
+
+		self.lib = self.mod1
 		self.init_ui()
 
 	def init_ui(self):
@@ -44,6 +49,9 @@ class App(tk.Tk):
 		style = ttk.Style()
 		style.theme_use('default')
 		style.configure("Green.Horizontal.TProgressbar", foreground='#28a745', background='#28a745')
+
+		separator_style = ttk.Style()
+		separator_style.configure("Purple.TSeparator", background="#c72dbf")
 		
 		self.progress = ttk.Progressbar(self, orient="horizontal", length=100, 
 										mode="determinate", style="Green.Horizontal.TProgressbar")
@@ -66,7 +74,7 @@ class App(tk.Tk):
 								   wraplength=220, justify="left", bg="#f0f0f0")
 		self.path_label.pack(side="top", anchor="w")
 
-		# НОВОЕ: Лейбл для отображения количества строк
+		# Лейбл для отображения количества строк
 		self.lines_count_label = tk.Label(file_info_frame, text="Кол-во строк: 0", 
 										  font=("Arial", 9), fg="#555", bg="#f0f0f0")
 		self.lines_count_label.pack(side="top", anchor="w", pady=(2, 0))
@@ -74,19 +82,28 @@ class App(tk.Tk):
 		# 2. Кнопка выбора
 		tk.Button(self.left_panel, text="Выбрать файл", command=self.select_file).pack(fill="x", pady=5)
 
-		ttk.Separator(self.left_panel, orient="horizontal").pack(fill="x", pady=10)
+		ttk.Separator(self.left_panel, orient="horizontal", style="Purple.TSeparator").pack(fill="x", pady=10)
 
 		# 3. Поле для ввода числа (1-2048)
 		tk.Label(self.left_panel, text="Размер (1-2048):", bg="#f0f0f0").pack(anchor="w")
 		vcmd = (self.register(self.validate_int), '%P')
-		self.size_entry = tk.Entry(self.left_panel, validate='key', validatecommand=vcmd)
+		self.size_entry = tk.Entry(self.left_panel, validate='key', state='disabled', validatecommand=vcmd)
 		self.size_entry.insert(0, "1")
 		self.size_entry.pack(fill="x", pady=2)
 
 		# 4. Кнопка Сгенерировать
-		tk.Button(self.left_panel, text="Сгенерировать", command=self.run_generate).pack(fill="x", pady=5)
+		self.gen_button = tk.Button(self.left_panel, text="Сгенерировать", state="disabled", command=self.run_generate)
+		self.gen_button.pack(fill="x", pady=5)
 
-		ttk.Separator(self.left_panel, orient="horizontal").pack(fill="x", pady=10)
+		ttk.Separator(self.left_panel, orient="horizontal", style="Purple.TSeparator").pack(fill="x", pady=10)
+
+		# Модуль
+		tk.Label(self.left_panel, text="Модуль:", bg="#f0f0f0").pack(anchor="w")
+		self.mod_options = ["C++", "Python"]
+		self.mod_combo = ttk.Combobox(self.left_panel, values=self.mod_options, state="disabled")
+		self.mod_combo.current(0)
+		self.mod_combo.pack(fill="x", pady=2)
+		self.mod_combo.bind("<<ComboboxSelected>>", self.on_mod_combo)
 
 		# 5. Ключ
 		tk.Label(self.left_panel, text="Ключ:", bg="#f0f0f0").pack(anchor="w")
@@ -103,10 +120,12 @@ class App(tk.Tk):
 		self.dir_combo.pack(fill="x", pady=2)
 
 		# 7. Кнопка Сортировать
-		self.sort_btn = tk.Button(self.left_panel, text="Сортировать", state="disabled", command=self.run_sort)
+		def sort_thread():
+			Thread(target=self.run_sort, daemon=True).start()
+		self.sort_btn = tk.Button(self.left_panel, text="Сортировать", state="disabled", command=sort_thread)
 		self.sort_btn.pack(fill="x", pady=5)
 
-		ttk.Separator(self.left_panel, orient="horizontal").pack(fill="x", pady=10)
+		ttk.Separator(self.left_panel, orient="horizontal", style="Purple.TSeparator").pack(fill="x", pady=10)
 
 		# 8-10. Настройки отображения
 		self.file_target = tk.StringVar(value="orig")
@@ -145,8 +164,16 @@ class App(tk.Tk):
 
 	# --- Логика ---
 
+	def on_mod_combo(self, event):
+		match self.mod_combo.current():
+			case 0:
+				self.lib = self.mod1 
+			case 1:
+				self.lib = self.mod2
+
 	def validate_int(self, P):
-		if P == "": return True
+		if P == "":
+			return True
 		try:
 			val = int(P)
 			return 1 <= val <= 2048
@@ -165,9 +192,13 @@ class App(tk.Tk):
 			self.path_label.config(text=path, fg="gray")
 			
 			# Активируем элементы
+			self.mod_combo.config(state="readonly")
 			self.key_combo.config(state="readonly")
 			self.dir_combo.config(state="readonly")
 			self.sort_btn.config(state="normal")
+
+			self.size_entry.config(state='normal')
+			self.gen_button.config(state='normal')
 			
 			# Подсчет строк
 			self.count_total_lines(path)
@@ -200,6 +231,8 @@ class App(tk.Tk):
 			messagebox.showerror("Ошибка", "Модуль 'generate' не найден")
 
 	def run_sort(self):
+		self.sort_btn.config(state='disabled')
+		self.gen_button.config(state='disabled')
 		path = self.file_path.get()
 		# Проверка на \n в конце
 		try:
@@ -207,13 +240,19 @@ class App(tk.Tk):
 				f.seek(-1, os.SEEK_END)
 				if f.read(1) != b'\n':
 					messagebox.showerror("Ошибка", "Файл должен заканчиваться символом переноса строки (LF).")
+					self.sort_btn.config(state='normal')
+					self.gen_button.config(state='normal')
 					return
 		except Exception as e:
 			messagebox.showerror("Ошибка доступа", str(e))
+			self.sort_btn.config(state='normal')
+			self.gen_button.config(state='normal')
 			return
 
 		if not self.lib:
 			messagebox.showerror("Ошибка", "DLL не загружена")
+			self.sort_btn.config(state='normal')
+			self.gen_button.config(state='normal')
 			return
 
 		CMPFUNC = ctypes.CFUNCTYPE(None, ctypes.c_float)
@@ -227,10 +266,13 @@ class App(tk.Tk):
 			messagebox.showinfo("Успех", "Сортировка завершена")
 		except Exception as e:
 			messagebox.showerror("Ошибка DLL", str(e))
+		self.sort_btn.config(state='normal')
+		self.gen_button.config(state='normal')
 
 	def display_content(self):
 		base_path = self.file_path.get()
-		if not base_path: return
+		if not base_path:
+			return
 
 		target = base_path if self.file_target.get() == "orig" else base_path + ".sorted"
 		
@@ -248,8 +290,10 @@ class App(tk.Tk):
 			with open(target, 'r', encoding='utf-8') as f:
 				reader = csv.reader(f)
 				for i, row in enumerate(reader):
-					if i < start_line: continue
-					if i >= start_line + count: break
+					if i < start_line:
+						continue
+					if i >= start_line + count:
+						break
 					self.output_text.insert(tk.END, ",".join(row) + "\n")
 			
 			self.output_text.config(state="disabled")

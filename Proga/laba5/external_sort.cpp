@@ -14,8 +14,8 @@ namespace fs = filesystem;
 
 
 const size_t READER_SIZE = 1024*1024*10; // 10 MiB
-const size_t MAX_RECORDS = 1'000'000;    // 75 MiB 
-const size_t WRITER_SIZE = 1024*1024*95; // 95 MiB
+const size_t MAX_RECORDS = 500'000;
+const size_t WRITER_SIZE = 1024*1024*10; // 10 MiB
 
 const char TRUE[] = "true";
 const char FALSE[] = "false";
