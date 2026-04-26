@@ -9,8 +9,8 @@ from typing import Callable
 
 # Константы (в соответствии с C++ версией)
 READER_SIZE = 1024 * 1024 * 10  # 10 MiB - буфер чтения
-MAX_RECORDS = 1_000_000         # ~77.25 MiB - лимит записей в ОЗУ
-WRITER_SIZE = 1024 * 1024 * 95  # 95 MiB - буфер записи
+MAX_RECORDS = 500_000
+WRITER_SIZE = 1024 * 1024 * 10  # 10 MiB - буфер записи
 
 # Определяем numpy тип данных (соответствует C++ __attribute__((packed)) Record)
 # Строковые поля (S) фиксированной длины, little-endian типы для чисел
@@ -127,14 +127,15 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 				
 				# Ручной парсинг индексов по запятой
 				comma1 = reader_buf.find(b',', idx, last_newline + 1)
-				if comma1 == -1: break
-				records['nickname'][total_records] = reader_buf[idx:comma1]
+				if comma1 == -1:
+					break
+				records['nickname'][total_records] = bytes(reader_buf[idx:comma1])
 				
 				comma2 = reader_buf.find(b',', comma1 + 1, last_newline + 1)
-				records['uuid'][total_records] = reader_buf[comma1+1:comma2]
+				records['uuid'][total_records] = bytes(reader_buf[comma1+1:comma2])
 				
 				comma3 = reader_buf.find(b',', comma2 + 1, last_newline + 1)
-				records['reg_date'][total_records] = reader_buf[comma2+1:comma3]
+				records['reg_date'][total_records] = bytes(reader_buf[comma2+1:comma3])
 				
 				comma4 = reader_buf.find(b',', comma3 + 1, last_newline + 1)
 				records['level'][total_records] = int(reader_buf[comma3+1:comma4])
@@ -143,7 +144,8 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 				records['hours'][total_records] = float(reader_buf[comma4+1:comma5])
 				
 				newline = reader_buf.find(b'\n', comma5 + 1, last_newline + 1)
-				if newline == -1: newline = last_newline
+				if newline == -1:
+					newline = last_newline
 				# Учтем возможный \r от Windows (если файл формата CRLF)
 				records['vac_ban'][total_records] = reader_buf[comma5+1:newline].startswith(b'true')
 				
@@ -206,7 +208,7 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 			
 			# Сброс буфера (по аналогии с C++: WRITER_SIZE - 1000)
 			if writer_pos > WRITER_SIZE - 1000:
-				f_out.write(writer_buf[:writer_pos])
+				f_out.write(memoryview(writer_buf)[:writer_pos])
 				progressCallback(read_out_size / total_file_size)
 				writer_pos = 0
 				
@@ -219,9 +221,12 @@ def external_sort(path: str, keyIndex: int, ascending: bool, progressCallback: C
 				
 		# Сброс остатков буфера
 		if writer_pos > 0:
-			f_out.write(writer_buf[:writer_pos])
+			f_out.write(memoryview(writer_buf)[:writer_pos])
 			read_out_size += writer_pos
-			progressCallback(read_out_size / total_file_size)
+			p: float = read_out_size / total_file_size
+			if p > 1.0:
+				p = 1.0
+			progressCallback(p)
 
 	# Очистка ресурсов
 	for f in open_files:
@@ -242,6 +247,4 @@ if __name__ == "__main__":
 	# 5 = vac_ban
 	
 	# Пример вызова, эквивалентный `external_sort("data.csv", 2, false, progress);`
-	print("Начало сортировки (Фаза 1: Разделение)...")
-	external_sort("data.csv", 2, False, progress)
-	print("Сортировка завершена! Результат сохранен в 'data.csv.sorted'")
+	external_sort("data.csv", 0, True, progress)
