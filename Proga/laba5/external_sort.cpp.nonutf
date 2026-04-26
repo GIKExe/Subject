@@ -40,7 +40,7 @@ struct MergeNode {
 using Comparator = bool(*)(const Record&, const Record&);
 
 static const Comparator comparators[2][6] = {
-	{ // descending (РїРѕ СѓР±С‹РІР°РЅРёСЋ) вЂ” РёРЅРґРµРєСЃ 0
+	{ // descending (по убыванию) — индекс 0
 		[](const Record& a, const Record& b) { return std::strcmp(a.nickname, b.nickname) > 0; },
 		[](const Record& a, const Record& b) { return std::strcmp(a.uuid, b.uuid) > 0; },
 		[](const Record& a, const Record& b) { return std::strcmp(a.reg_date, b.reg_date) > 0; },
@@ -48,7 +48,7 @@ static const Comparator comparators[2][6] = {
 		[](const Record& a, const Record& b) { return a.hours > b.hours; },
 		[](const Record& a, const Record& b) { return a.vac_ban > b.vac_ban; }
 	},
-	{ // ascending (РїРѕ РІРѕР·СЂР°СЃС‚Р°РЅРёСЋ) вЂ” РёРЅРґРµРєСЃ 1
+	{ // ascending (по возрастанию) — индекс 1
 		[](const Record& a, const Record& b) { return std::strcmp(a.nickname, b.nickname) < 0; },
 		[](const Record& a, const Record& b) { return std::strcmp(a.uuid, b.uuid) < 0; },
 		[](const Record& a, const Record& b) { return std::strcmp(a.reg_date, b.reg_date) < 0; },
@@ -144,19 +144,19 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 	
 	progressCallback(0);
 	while (1) {
-		// С‡С‚РµРЅРёРµ РєСѓСЃРєР° С„Р°Р№Р»Р°.
+		// чтение куска файла.
 		input.read(buffer, READER_SIZE);
 		std::streamsize bytesRead = input.gcount();
 		if (bytesRead == 0) break;
-		// РІРѕСЃС‚Р°РЅРѕРІР»РµРЅРёРµ СѓРєР°Р·Р°С‚РµР»СЏ
+		// востановление указателя
 		size_t currentFilePos = input.tellg();
 		index = buffer + (bytesRead-1);
-		for (; *index != '\n'; index--) // РЅРµ РѕС‡РµРЅСЊ Р±РµР·РѕРїР°СЃРЅРѕ
+		for (; *index != '\n'; index--) // не очень безопасно
 			currentFilePos--;
 		*(index+1) = 0;
 		readIt += (index+1) - buffer;
 		input.seekg(currentFilePos, std::ios::beg);
-		// РїРµСЂРµС…РѕРґ Рє С‡С‚РµРЅРёСЋ
+		// переход к чтению
 		index = buffer;
 		while (*index != 0) {
 			parse(&index, records[totalRecords]);
@@ -242,10 +242,10 @@ Export void external_sort(const char *path, int keyIndex, bool ascending, void (
 
 int main() {
 	auto progress = [](float p) {
-		printf("РџСЂРѕРіСЂРµСЃСЃ: %.2f%%\n", p * 100);
+		printf("Прогресс: %.2f%%\n", p * 100);
 	};
 
-	// ascending (РїРѕ РІРѕР·СЂР°СЃС‚Р°РЅРёСЋ = true)
+	// ascending (по возрастанию = true)
 	// 0 nickname
 	// 1 uuid
 	// 2 reg_date
@@ -256,7 +256,7 @@ int main() {
 	return 0;
 }
 
-// РєР°Рє РїСЂРёР»РѕР¶РµРЅРёРµ:
+// как приложение:
 // g++ external_sort.cpp -o ext
-// РєР°Рє Р±РёР±Р»РёРѕС‚РµРєСѓ:
+// как библиотеку:
 // g++ -shared -o external_sort.dll external_sort.cpp -static -Os -s

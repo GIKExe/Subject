@@ -1,0 +1,174 @@
+
+from time import time
+from datetime import datetime
+from random import random, choice, randint
+import math
+import uuid
+
+nicks = {
+	# 23 коротких ника (однословные, 5–7 символов)
+	"Raven": [],
+	"Tiger": [],
+	"Falcon": [],
+	"Viper": [],
+	"Eagle": [],
+	"Wolver": [],
+	"Lynx": [],
+	"Hawkeye": [],
+	"Crow": [],
+	"Fox": [],
+	"Bear": [],
+	"Lion": [],
+	"Boar": [],
+	"Elk": [],
+	"Owl": [],
+	"Bat": [],
+	"Seal": [],
+	"Crab": [],
+	"Wasp": [],
+	"Ant": [],
+	"Beetle": [],
+	"Fly": [],
+	"Spider": [],
+
+	# 40 длинных ников с дополнительной конструкцией (два слова + суффикс)
+	"ShadowStalkerXxX": [],
+	"NightCrawlerGG": [],
+	"FireBreatherF": [],
+	"StormWeaverAAA": [],
+	"EarthShakerZzZ": [],
+	"WindWhisperQwQ": [],
+	"ThunderMasterOoO": [],
+	"LightningStrikeBz": [],
+	"CrystalGuardKk": [],
+	"DarkHunterVvV": [],
+	"LightBringerMew": [],
+	"SoulKeeperNyx": [],
+	"MindReaderRz": [],
+	"TimeWalkerPw": [],
+	"SpaceRiderLol": [],
+	"StarGazerWwW": [],
+	"MoonDancerHhH": [],
+	"SunChaserYyY": [],
+	"DawnBreakerPp": [],
+	"DuskTreaderRr": [],
+	"FrostBiteXxX": [],
+	"FlameBringerGG": [],
+	"EmberSparkF": [],
+	"BlazeFuryAAA": [],
+	"VortexMasterZzZ": [],
+	"PhantomGhostQwQ": [],
+	"ShadowReaperOoO": [],
+	"SilentAssassinBz": [],
+	"StealthNinjaKk": [],
+	"QuickSilverVvV": [],
+	"IronFistMew": [],
+	"SteelHeartNyx": [],
+	"BronzeShieldRz": [],
+	"GoldenEaglePw": [],
+	"SilverWolfLol": [],
+	"CrimsonFoxWwW": [],
+	"EmeraldDragonHhH": [],
+	"SapphireTigerYyY": [],
+	"RubyLionPp": [],
+	"DiamondHawkRr": [],
+
+	# 37 длинных ников без конструкции (просто два слова)
+	"ObsidianSerpent": [],
+	"GraniteGolem": [],
+	"MarbleMystic": [],
+	"QuartzKnight": [],
+	"TopazTitan": [],
+	"JadeJaguar": [],
+	"AmberApe": [],
+	"CoralCobra": [],
+	"PearlPegasus": [],
+	"RubyRaven": [],
+	"SapphireSphinx": [],
+	"TopazTroll": [],
+	"ObsidianOwl": [],
+	"GraniteGriffin": [],
+	"MarbleManticore": [],
+	"QuartzQuetzal": [],
+	"JadeJinni": [],
+	"AmberArchon": [],
+	"CoralCentaur": [],
+	"PearlPhoenix": [],
+	"RubyRogue": [],
+	"SapphireSorcerer": [],
+	"TopazTamer": [],
+	"ObsidianOracle": [],
+	"GraniteGuardian": [],
+	"MarbleMage": [],
+	"QuartzQueen": [],
+	"JadeJester": [],
+	"AmberArcher": [],
+	"CoralCrusader": [],
+	"OnyxOutcast": [],
+	"PearlPaladin": [],
+	"RubyRanger": [],
+	"SapphireShaman": [],
+	"TopazThief": [],
+	"ObsidianOverseer": [],
+	"OnyxWarden": []
+}
+
+
+def atan_transform(x, threshold=40000, max_value=50000):
+	if x <= threshold:
+		return x
+	else:
+		# Масштабируем вход для atan, чтобы в threshold получить нужный наклон
+		k = 2 / threshold  # коэффициент масштабирования
+		# atan стремится к ?/2, поэтому масштабируем выход
+		return threshold + (max_value - threshold) * (2 / math.pi) * math.atan(k * (x - threshold))
+
+
+def gen_date_and_hours():
+	x = chunk_time * random()
+	y = (chunk_time - x) * random() * 0.8 / 3600
+	dt = datetime.fromtimestamp(x + start_time)
+	return dt.strftime('%Y.%m.%d'), f"{atan_transform(y):.3f}" 
+
+
+def gen_line():
+	nick = choice(list(nicks.keys()))
+	date, hours = gen_date_and_hours()
+	level = str(randint(0, 100))
+	ban = ("true" if randint(0, 99) <= 4 else "false")
+	id = str(uuid.uuid5(uuid.NAMESPACE_DNS, ','.join([nick, date, level, hours, ban])))
+	return ",".join([nick, id, date, level, hours, ban]) + "\n"
+
+
+start_time = int(datetime(2000, 1, 1).timestamp())
+end_time = int(datetime.now().timestamp())
+chunk_time = end_time - start_time
+
+
+def generate(path: str, size_max: int, func = None) -> None:
+	with open(path, "wb") as file:
+		file.seek(0)
+		chunk = size_max / 100
+		counter = 0
+		size = 0
+		while size < size_max:
+			if size > chunk*counter:
+				p = size / size_max
+				if p > 1: p = 1.0
+				if func is not None: func(p)
+				counter+=1
+			line = gen_line()
+			file.write(line.encode("ascii"))
+			file.flush()
+			size += len(line)
+
+# файл data.csv через запятую
+# 1 строка: ник
+# 2 строка: айди (uuid)
+# 3 строка: дата регистрации (начиная с 2000.01.01)
+# 4 инт: уровень (0-100)
+# 5 флот: кол-во часов (меньше или равно с момента регистрации)
+# 6 бул: вак бан? 
+
+if __name__ == "__main__":
+	generate("data.csv", (1024**3)*1.05)
