@@ -92,7 +92,9 @@ class App(tk.Tk):
 		self.size_entry.pack(fill="x", pady=2)
 
 		# 4. Кнопка Сгенерировать
-		self.gen_button = tk.Button(self.left_panel, text="Сгенерировать", state="disabled", command=self.run_generate)
+		def gen_thread():
+			Thread(target=self.run_generate, daemon=True).start()
+		self.gen_button = tk.Button(self.left_panel, text="Сгенерировать", state="disabled", command=gen_thread)
 		self.gen_button.pack(fill="x", pady=5)
 
 		ttk.Separator(self.left_panel, orient="horizontal", style="Purple.TSeparator").pack(fill="x", pady=10)
@@ -218,8 +220,12 @@ class App(tk.Tk):
 			messagebox.showerror("Ошибка", f"Не удалось прочитать файл: {e}")
 
 	def run_generate(self):
+		self.sort_btn.config(state='disabled')
+		self.gen_button.config(state='disabled')
 		if not self.file_path.get():
 			messagebox.showwarning("Внимание", "Сначала выберите файл!")
+			self.sort_btn.config(state='normal')
+			self.gen_button.config(state='normal')
 			return
 		
 		if generate:
@@ -229,6 +235,8 @@ class App(tk.Tk):
 			messagebox.showinfo("Готово", "Генерация завершена")
 		else:
 			messagebox.showerror("Ошибка", "Модуль 'generate' не найден")
+		self.sort_btn.config(state='normal')
+		self.gen_button.config(state='normal')
 
 	def run_sort(self):
 		self.sort_btn.config(state='disabled')
