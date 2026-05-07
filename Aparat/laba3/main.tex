@@ -1,0 +1,145 @@
+\documentclass[oneside,a4paper,14pt]{extarticle} %размер шрифта 14
+\usepackage[T1,T2A]{fontenc}
+\usepackage[
+	a4paper,
+	letterpaper,
+	top=2cm,
+	bottom=2cm,
+	left=2.5cm,
+	right=1.5cm
+]{geometry}
+\usepackage[utf8]{inputenc} %кодировка текста
+\usepackage[russian]{babel} %поддержка русского языка
+\usepackage{textcomp} %текстовые символы
+\usepackage{indentfirst} %корректировка отступов
+\usepackage{graphicx} %работа с изображениям
+\usepackage{listings} %для кода !!!
+\usepackage{listingsutf8}
+% \usepackage{hyperref} % для ссылок
+\usepackage{xcolor}
+\usepackage{float} % для "впихивания" изображений в странницу
+\usepackage{mwe} % for blind text and example-image-a in example
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{amsmath}  % для формул и символов
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[all]{xy}
+\usepackage[breaklinks]{hyperref}
+\usepackage{xurl}
+%%размер кегля у заголовков разделов
+\usepackage{titlesec}
+\titleformat{\section}
+{\normalsize\bfseries}
+{\thesection} {1em}{}
+\titleformat{\subsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{}
+\titleformat{\subsubsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{}
+
+\renewcommand\baselinestretch{1.33}\normalsize % межстрочный интервал
+\setlength{\parindent}{1.25cm}
+\usepackage{indentfirst}
+
+
+% прочее
+\usepackage{fancyhdr}
+\usepackage{colortbl}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz -timing}
+\usepackage{tikz}
+\usetikzlibrary{karnaugh}
+\usepackage{karnaugh-map}
+% \usepackage{showframe}
+
+% настройки листинга
+\lstset{
+  language=C++,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  inputencoding=cp1251,
+  extendedchars=true,
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=cyan,    % цвет внутренних ссылок
+  urlcolor=blue,    % цвет URL
+  filecolor=magenta % цвет ссылок на файлы
+}
+
+
+\begin{document}
+	\newpage\thispagestyle{empty}
+	\begin{center}
+		МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			РОССИЙСКОЙ ФЕДЕРАЦИИ
+			ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+			ОБРАЗОВАТЕЛЬНОЕ
+			УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+			Институт математики и информационных систем\\
+			Факультет автоматики и вычислительной техники\\
+			Кафедра электронных вычислительных машин
+	\end{center}
+	\vspace{20mm}
+
+	\begin{center}
+		Отчёт по лабораторной работе №3\\
+		по дисциплине\\
+		<<Введение в аппаратное обеспечение \\ систем искусственного интеллекта>>\\
+		<<Вариант 13>>\\
+	\end{center}
+	\vspace{48mm}
+
+	Выполнил студент гр. ИВТб-1303-06-00 \hspace{10mm} \rule[-0,5mm]{23mm}{0.15mm}\,/Гортоломей И.К./
+
+
+	Проверил доцент кафедры ЭВМ \hfill  \rule[-0,5mm]{30mm}{0.15mm}\,/Коржавина А.С./
+
+	\vfill
+	\begin{center}
+		Киров\\
+		2026
+	\end{center}
+
+	\newpage
+	\thispagestyle{empty}
+
+	\section*{Цель работы:} Научиться собирать сборки без программирования, используя базовые логические элементы, счётчики и таймер.
+	\section*{Задание}
+\begin{enumerate}
+    \item \textbf{Игра на реакцию:} вариант 13 – начальное состояние светодиодов «включены», движение «справа», количество светодиодов – 6.
+    \item \textbf{Декодер:} преобразование двоичного числа в код Грея со смещением результата +13.
+    \item \textbf{Декодер+:} преобразование 3-битного двоичного кода в 7-битный код «Термометр» с использованием микросхем 74HC32, 74HC08.
+    \item \textbf{Секундомер:} счёт нечётных чисел, сброс при достижении 83.
+    \item \textbf{Секундомер+:} счёт с шагом 4 (00, 04, 08, 12, 16, …).
+\end{enumerate}
+Для каждого эксперимента предоставлена схема сборки на макетной плате, принципиальная схема и ссылка на рабочий проект в Tinkercad.
+	\newpage
+	\section*{Решение заданий}
+	\input{solutions}
+	\newpage
+	\section*{Выводы}
+
+	В ходе выполнения лабораторной работы были изучены принципы построения цифровых устройств без использования микроконтроллерного программирования. Для варианта 13:
+\begin{itemize}
+    \item Реализована игра на реакцию с бегущим огнём на 6 светодиодах и фиксацией одного из них по кнопке.
+    \item Построен декодер для преобразования двоичного кода в код Грея с добавлением константы 13.
+    \item Выполнено преобразование 3-битного доичного кода в 7-битный термометрический код на элементах И и ИЛИ.
+    \item Создан секундомер, отображающий нечётные числа с автоматическим сбросом при достижении 83.
+    \item Реализован счётчик с шагом 4 (числа, кратные 4).
+\end{itemize}
+Все схемы собраны и протестированы в среде Tinkercad. Полученные навыки позволяют проектировать аппаратные узлы для задач, критичных к времени отклика и не требующих программной логики.
+
+\end{document}
