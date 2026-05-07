@@ -1,0 +1,26 @@
+{
+  "video_metadata": {
+    "video_id": "15",
+    "video_title": "Сверточные нейронные сети (CNN)",
+    "duration_seconds": 1390
+  },
+  "libraries": [
+    {"name": "TensorFlow", "version": "2.14.0", "purpose": "Построение архитектуры CNN", "timestamp": 45},
+    {"name": "Keras", "version": "2.14.0", "purpose": "Высокоуровневый API для слоёв", "timestamp": 120},
+    {"name": "Matplotlib", "version": "3.7.1", "purpose": "Отрисовка кривых обучения", "timestamp": 890}
+  ],
+  "algorithms": [
+    {"name": "Conv2D", "type": "Слой", "description": "Применение фильтров для извлечения пространственных признаков", "timestamp": 210},
+    {"name": "MaxPooling2D", "type": "Слой", "description": "Даунсэмплинг карт признаков", "timestamp": 340},
+    {"name": "Backpropagation", "type": "Алгоритм оптимизации", "description": "Вычисление градиентов для обновления весов", "timestamp": 560}
+  ],
+  "metrics": [
+    {"name": "accuracy", "value": "0.924", "timestamp": 1250},
+    {"name": "val_accuracy", "value": "0.918", "timestamp": 1250}
+  ],
+  "code_functions": [
+    {"function_name": "tf.keras.Sequential", "library": "TensorFlow/Keras", "timestamp": 250},
+    {"function_name": "model.compile", "library": "TensorFlow/Keras", "timestamp": 580},
+    {"function_name": "model.fit", "library": "TensorFlow/Keras", "timestamp": 850}
+  ]
+}

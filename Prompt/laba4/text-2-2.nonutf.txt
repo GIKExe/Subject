@@ -1,0 +1,14 @@
+{
+  "video_url": "https://www.youtube.com/watch?v=uaKuAYuYswg",
+  "classification": {
+    "category": "Сбор и очистка данных",
+    "subcategory": "Базовая подготовка датасетов"
+  },
+  "tags": {
+    "difficulty": "Начальный",
+    "format": "Теоретико-практический обзор",
+    "has_code_demo": true,
+    "has_screen_demo": true
+  },
+  "reasoning": "Видео последовательно разбирает этапы ETL-процесса: загрузка CSV, обработка пропусков через pandas.dropna/fillna, фильтрация аномалий. Визуальный ряд содержит Jupyter Notebook с кодом на Python, аудиофокус сделан на методиках очистки сырых данных перед анализом."
+}

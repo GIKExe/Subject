@@ -6,7 +6,6 @@
 \usepackage{textcomp}
 \usepackage{indentfirst}
 \usepackage{listings}
-\usepackage{listingsutf8}
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{enumitem}
@@ -21,13 +20,12 @@
 \usepackage{xurl}
 \usepackage{titlesec}
 
-% Настройки заголовков
-\titleformat{\section}{\normalsize\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
-
+% Настройки заголовков (исправлены опечатки оригинала)
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\large\bfseries}{\thesubsubsection}{1em}{}
 \renewcommand\baselinestretch{1.33}
-\normalsize
+\normalfont\normalsize
 \setlength{\parindent}{1.25cm}
 
 % Настройки листингов
@@ -47,46 +45,55 @@
     extendedchars=true,
 }
 
+% Отдельный стиль для JSON-ответов моделей
+\lstdefinestyle{jsonstyle}{
+    language=json,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+    inputencoding=cp1251,
+    extendedchars=true,
+}
+
 \begin{document}
-	\newpage\thispagestyle{empty}
-	\begin{center}
-		МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
-			РОССИЙСКОЙ ФЕДЕРАЦИИ
-			ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
-			ОБРАЗОВАТЕЛЬНОЕ
-			УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
-			«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
-			Институт математики и информационных систем\\
-			Факультет автоматики и вычислительной техники\\
-			Кафедра электронных вычислительных машин
-	\end{center}
-	\vspace{20mm}
-
-	\begin{center}
-		Отчёт по лабораторной работе №4\\
-		по дисциплине\\
-		<<Промпт-инжиниринг>>\\
-		<<Обработка и создание видео с помощью промпт-инжиниринга>>\\
-		<<Вариант 4>>\\
-	\end{center}
-	\vspace{48mm}
-
-	\noindent
-	Выполнил студент гр. ИВТб-1303-06-00 \hfill \rule[-0,5mm]{30mm}{0.15mm}\,/Гортоломей И.К./
-	\newline
-	Проверил доцент кафедры ЭВМ \hfill \rule[-0,5mm]{30mm}{0.15mm}\,/Колупаев А.В./
-
-	\vfill
-	\begin{center}
-		Киров\\
-		2026
-	\end{center}
-
-	\newpage
-	\thispagestyle{empty}
-
-
+\newpage\thispagestyle{empty}
+\begin{center}
+МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+РОССИЙСКОЙ ФЕДЕРАЦИИ\\
+ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+ОБРАЗОВАТЕЛЬНОЕ УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+Институт математики и информационных систем\\
+Факультет автоматики и вычислительной техники\\
+Кафедра электронных вычислительных машин
+\end{center}
+\vspace{20mm}
+\begin{center}
+Отчёт по лабораторной работе №4\\
+по дисциплине\\
+<<Промпт-инжиниринг>>\\
+<<Обработка и создание видео с помощью промпт-инжиниринга>>\\
+<<Вариант 4>>\\
+\end{center}
+\vspace{48mm}
+\noindent
+Выполнил студент гр. ИВТб-1303-06-00 \hfill \rule[-0.5mm]{30mm}{0.15mm}\,/Гортоломей И.К./\\[0.5cm]
+Проверил доцент кафедры ЭВМ \hfill \rule[-0.5mm]{30mm}{0.15mm}\,/Колупаев А.В./
+\vfill
+\begin{center}
+Киров\\
+2026
+\end{center}
 \newpage
+\thispagestyle{empty}
+\newpage
+
 \section*{Цель работы}
 Комплексное освоение методов мультимодального промпт-инжиниринга для решения полного спектра задач работы с видео: от семантического анализа и структурированного извлечения данных до проектирования и генерации синтетических видеоматериалов.
 
@@ -95,14 +102,13 @@
 \indent модель (a): gemini (основная)\\
 \indent модель (b): glm-5 (контрольная)\\
 \indent предметная область варианта 4: Наука о данных (Data Science)
-
 \newpage
+
 \section{Задание №1: Семантический анализ и многоуровневая классификация видеоконтента}
 \subsection{Постановка задачи и таксономия}
 \noindent
 Предметная область: Data Science\\
 Рекомендуемые классы: Сбор и очистка данных, Визуализация данных, Обучение моделей (ML), Нейронные сети (DL).
-
 \begin{table}[H]
 \centering
 \caption{Таксономия категорий Data Science видео}
@@ -116,47 +122,47 @@
 \end{tabular}
 \end{table}
 
-% \newpage
+\newpage
 \subsection{Датасет видеороликов}
 \begin{table}[H]
-	\centering
-	\caption{Датасет видеороликов по Data Science}
-	\begin{tabular}{|p{0.5cm}|p{6cm}|p{6cm}|p{1.5cm}|p{1cm}|}
-		\hline
-		\textbf{ID} & \textbf{Название} & \textbf{Ссылка} & \textbf{Длит.} & \textbf{Выборка} \\ \hline
-		1 & Data Science за 10 минут: полный гайд & \url{https://www.youtube.com/watch?v=uaKuAYuYswg} & 10:15 & Отлад. \\ \hline
-		2 & Pandas Tutorial: очистка и подготовка данных & \url{https://www.youtube.com/watch?v=vmEHCJofslg} & 25:30 & Тест. \\ \hline
-		3 & Работа с пропущенными значениями в pandas & \url{https://www.youtube.com/watch?v=KCAJP2AfKs0} & 15:45 & Тест. \\ \hline
-		4 & Web scraping для сбора данных: BeautifulSoup & \url{https://www.youtube.com/watch?v=XVv6mJpFOb0} & 18:20 & Тест. \\ \hline
-		5 & Matplotlib и seaborn: визуализация данных & \url{https://www.youtube.com/watch?v=3Xc3CA655Y4} & 20:10 & Отлад. \\ \hline
-		6 & Plotly: интерактивные графики и дашборды & \url{https://www.youtube.com/watch?v=GGL6U0k8IKo} & 22:35 & Тест. \\ \hline
-		7 & Построение сложных графиков в Python & \url{https://www.youtube.com/watch?v=0P7QnIQDBJY} & 16:50 & Тест. \\ \hline
-		8 & Scikit-learn: введение в машинное обучение & \url{https://www.youtube.com/watch?v=7eh4X6a_gw4} & 28:15 & Тест. \\ \hline
-		9 & Линейная регрессия с нуля на Python & \url{https://www.youtube.com/watch?v=JcI5Vnw0b2c} & 19:40 & Отлад. \\ \hline
-		10 & Классификация: деревья решений и случайный лес & \url{https://www.youtube.com/watch?v=DZ2FI6IPw8k} & 24:25 & Тест. \\ \hline
-	\end{tabular}
+\centering
+\caption{Датасет видеороликов по Data Science}
+\begin{tabular}{|p{0.5cm}|p{6cm}|p{6cm}|p{1.5cm}|p{1cm}|}
+\hline
+\textbf{ID} & \textbf{Название} & \textbf{Ссылка} & \textbf{Длит.} & \textbf{Выборка} \\ \hline
+1 & Data Science за 10 минут: полный гайд & \url{https://www.youtube.com/watch?v=uaKuAYuYswg} & 10:15 & Отлад. \\ \hline
+2 & Pandas Tutorial: очистка и подготовка данных & \url{https://www.youtube.com/watch?v=vmEHCJofslg} & 25:30 & Тест. \\ \hline
+3 & Работа с пропущенными значениями в pandas & \url{https://www.youtube.com/watch?v=KCAJP2AfKs0} & 15:45 & Тест. \\ \hline
+4 & Web scraping для сбора данных: BeautifulSoup & \url{https://www.youtube.com/watch?v=XVv6mJpFOb0} & 18:20 & Тест. \\ \hline
+5 & Matplotlib и seaborn: визуализация данных & \url{https://www.youtube.com/watch?v=3Xc3CA655Y4} & 20:10 & Отлад. \\ \hline
+6 & Plotly: интерактивные графики и дашборды & \url{https://www.youtube.com/watch?v=GGL6U0k8IKo} & 22:35 & Тест. \\ \hline
+7 & Построение сложных графиков в Python & \url{https://www.youtube.com/watch?v=0P7QnIQDBJY} & 16:50 & Тест. \\ \hline
+8 & Scikit-learn: введение в машинное обучение & \url{https://www.youtube.com/watch?v=7eh4X6a_gw4} & 28:15 & Тест. \\ \hline
+9 & Линейная регрессия с нуля на Python & \url{https://www.youtube.com/watch?v=JcI5Vnw0b2c} & 19:40 & Отлад. \\ \hline
+10 & Классификация: деревья решений и случайный лес & \url{https://www.youtube.com/watch?v=DZ2FI6IPw8k} & 24:25 & Тест. \\ \hline
+\end{tabular}
 \end{table}
-\newpage
 \begin{table}[H]
-	\centering
-	\begin{tabular}{|p{0.5cm}|p{6cm}|p{6cm}|p{1.5cm}|p{1cm}|}
-		11 & Кластеризация K-Means на практике & \url{https://www.youtube.com/watch?v=4b5d3muPQmA} & 17:30 & Тест. \\ \hline
-		12 & Кросс-валидация и подбор гиперпараметров & \url{https://www.youtube.com/watch?v=fSytzGwwBVw} & 21:15 & Тест. \\ \hline
-		13 & Нейронные сети с TensorFlow: основы & \url{https://www.youtube.com/watch?v=tPYj3fFJGjk} & 30:20 & Отлад. \\ \hline
-		14 & PyTorch Tutorial для начинающих & \url{https://www.youtube.com/watch?v=V_xro1bcAuA} & 26:45 & Тест. \\ \hline
-		15 & Сверточные нейронные сети (CNN) & \url{https://www.youtube.com/watch?v=JMUxmLyrhSk} & 23:10 & Тест. \\ \hline
-		16 & Рекуррентные нейросети (RNN/LSTM) & \url{https://www.youtube.com/watch?v=WCUNPXg-R5E} & 20:55 & Тест. \\ \hline
-		17 & Transfer Learning в глубоком обучении & \url{https://www.youtube.com/watch?v=yofjFQddwHE} & 18:40 & Отлад. \\ \hline
-		18 & GAN: генеративно-состязательные сети & \url{https://www.youtube.com/watch?v=8L11aMN5KY8} & 22:30 & Тест. \\ \hline
-		19 & Feature Engineering для ML & \url{https://www.youtube.com/watch?v=6WzfxMZsEHE} & 19:25 & Тест. \\ \hline
-		20 & End-to-End ML проект: от данных до деплоя & \url{https://www.youtube.com/watch?v=8JZwXZUvLp4} & 35:15 & Тест. \\ \hline
-	\end{tabular}
+\centering
+\begin{tabular}{|p{0.5cm}|p{6cm}|p{6cm}|p{1.5cm}|p{1cm}|}
+11 & Кластеризация K-Means на практике & \url{https://www.youtube.com/watch?v=4b5d3muPQmA} & 17:30 & Тест. \\ \hline
+12 & Кросс-валидация и подбор гиперпараметров & \url{https://www.youtube.com/watch?v=fSytzGwwBVw} & 21:15 & Тест. \\ \hline
+13 & Нейронные сети с TensorFlow: основы & \url{https://www.youtube.com/watch?v=tPYj3fFJGjk} & 30:20 & Отлад. \\ \hline
+14 & PyTorch Tutorial для начинающих & \url{https://www.youtube.com/watch?v=V_xro1bcAuA} & 26:45 & Тест. \\ \hline
+15 & Сверточные нейронные сети (CNN) & \url{https://www.youtube.com/watch?v=JMUxmLyrhSk} & 23:10 & Тест. \\ \hline
+16 & Рекуррентные нейросети (RNN/LSTM) & \url{https://www.youtube.com/watch?v=WCUNPXg-R5E} & 20:55 & Тест. \\ \hline
+17 & Transfer Learning в глубоком обучении & \url{https://www.youtube.com/watch?v=yofjFQddwHE} & 18:40 & Отлад. \\ \hline
+18 & GAN: генеративно-состязательные сети & \url{https://www.youtube.com/watch?v=8L11aMN5KY8} & 22:30 & Тест. \\ \hline
+19 & Feature Engineering для ML & \url{https://www.youtube.com/watch?v=6WzfxMZsEHE} & 19:25 & Тест. \\ \hline
+20 & End-to-End ML проект: от данных до деплоя & \url{https://www.youtube.com/watch?v=8JZwXZUvLp4} & 35:15 & Тест. \\ \hline
+\end{tabular}
 \end{table}
 
+\newpage
 \subsection{Журнал итераций (Отладочная выборка)}
 \noindent
 \textbf{Начальный (наивный) промпт:}
-\lstinputlisting[language=]{text-1.nonutf}
+\lstinputlisting[language=]{text-1.nonutf.txt}
 
 \noindent
 \textbf{Анализ ошибки:} Модель правильно определила категорию, но не давала структурированного ответа и не указывала причину в машиночитаемом формате.\\
@@ -164,7 +170,12 @@
 
 \noindent
 \textbf{Финальный промпт:}
-\lstinputlisting[language=]{text-2.nonutf}
+\lstinputlisting[language=]{text-2.nonutf.txt}
+
+\newpage
+\noindent
+\textbf{Ответ модели (Gemini):}
+\lstinputlisting[language=]{text-2-2.nonutf.txt}
 
 \subsection{Результаты тестирования (Тестовая выборка)}
 \begin{table}[H]
@@ -191,6 +202,7 @@
 \end{tabular}
 \end{table}
 
+\newpage
 \subsection{Матрица ошибок и метрики}
 \begin{table}[H]
 \centering
@@ -204,30 +216,34 @@ ML & 0 & 0 & 5 & 0 \\ \hline
 DL & 0 & 0 & 0 & 3 \\ \hline
 \end{tabular}
 \end{table}
-
 \noindent
-Общая точность (Accuracy) Gemini: 
+Общая точность (Accuracy) Gemini:
 \begin{equation}
 \text{Accuracy} = \frac{19}{20} \times 100\% = 95\%
 \end{equation}
-Общая точность (Accuracy) GLM-5: 
+Общая точность (Accuracy) GLM-5:
 \begin{equation}
 \text{Accuracy} = \frac{18}{20} \times 100\% = 90\%
 \end{equation}
 
-% \newpage
+\newpage
 \section{Задание №2: Извлечение структурированных данных из видео}
 \subsection{Модель данных (JSON-схема)}
-\lstinputlisting[language=]{text-3.nonutf}
+\lstinputlisting[language=]{text-3.nonutf.txt}
 
+\newpage
 \subsection{Промпт для экстракции}
-\lstinputlisting[language=]{text-4.nonutf}
+\lstinputlisting[language=]{text-4.nonutf.txt}
 
 \subsection{Сравнительный анализ извлечения}
 \noindent
 \textbf{Эталон (видео ID 15: CNN):} Извлечено 18 сущностей (TP=18, FP=0, FN=0).\\
 \textbf{Результат Gemini:} Полное соответствие эталону. Таймкоды в допуске $\pm 3$ сек.\\
-\textbf{Результат GLM-5:} Добавлена галлюцинация `Seaborn` в видео ID 2, пропущен `Backpropagation` в видео ID 15.
+\textbf{Результат GLM-5:} Добавлена галлюцинация `Seaborn` в видео ID 2, пропущен `Backpropagation` в видео ID 15. \\
+
+\noindent
+\textbf{Фрагмент ответа модели (Gemini) для ID 15:}
+\lstinputlisting[language=]{text-4-2.nonutf.txt}
 
 \noindent
 Метрики качества извлечения (Gemini):
@@ -251,44 +267,36 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 
 \begin{figure}[H]
 \centering
-% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Аэрофотосъемка перекрестка с bounding box'ами вокруг машин, неоновыми линиями нейронной сети, вид сверху под углом] \vspace{1cm}}}
 \includegraphics[width=15cm]{1.png}
 \caption{Сгенерированный опорный кадр}
 \end{figure}
 
 \subsection{Динамика и Результат}
 \noindent
-% \textbf{Инструмент:} Luma Dream Machine (Image-to-Video)\\
 \textbf{Инструмент:} AIReel 3.0 (Image-to-Video)\\
 \textbf{Motion Prompt:} Плавное движение камеры вперед и немного вниз, приближение к перекрестку. Bounding box'ы вокруг машин пульсируют с лёгким свечением. Цифровые линии нейронной сети медленно перемещаются и мерцают. Машины плавно движутся по дорогам. Камера медленно поворачивается вправо на 15 градусов.
 
 \begin{figure}[H]
 \centering
-% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
 \includegraphics[width=15cm]{2.png}
 \caption{Результат генерации видео (раскадровка) ч.1}
 \end{figure}
-
 \begin{figure}[H]
 \centering
-% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
 \includegraphics[width=15cm]{3.png}
 \caption{Результат генерации видео (раскадровка) ч.2}
 \end{figure}
-
 \begin{figure}[H]
 \centering
-% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
 \includegraphics[width=15cm]{4.png}
 \caption{Результат генерации видео (раскадровка) ч.3}
 \end{figure}
-
 \begin{figure}[H]
 \centering
-% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
 \includegraphics[width=15cm]{5.png}
 \caption{Результат генерации видео (раскадровка) ч.4}
 \end{figure}
+
 \url{https://www.aireel.net/ru/work/2108260507215195747-1778161904759-ZY3lG}
 
 \newpage
@@ -297,9 +305,9 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 \textbf{Успехи:} Камера плавно приближается, bounding box'ы пульсируют, машины движутся.\\
 \textbf{Выявленные артефакты:}
 \begin{itemize}
-    \item \textit{Искажение геометрии bounding box'ов при повороте:} Модель не справилась с сохранением перспективы. \textit{Исправление:} Упростить движение камеры (только приближение).
-    \item \textit{Рассинхрон машин и рамок:} Два параллельных процесса в промпте. \textit{Исправление:} Оставить только анимацию рамок или использовать модель с поддержкой temporal sync.
-    \item \textit{``Плавающие'' линии сети:} Полупрозрачные элементы сложно удерживать стабильными. \textit{Исправление:} Сделать слой статичным или убрать.
+\item \textit{Искажение геометрии bounding box'ов при повороте:} Модель не справилась с сохранением перспективы. \textit{Исправление:} Упростить движение камеры (только приближение).
+\item \textit{Рассинхрон машин и рамок:} Два параллельных процесса в промпте. \textit{Исправление:} Оставить только анимацию рамок или использовать модель с поддержкой temporal sync.
+\item \textit{``Плавающие'' линии сети:} Полупрозрачные элементы сложно удерживать стабильными. \textit{Исправление:} Сделать слой статичным или убрать.
 \end{itemize}
 
 % \newpage
@@ -326,9 +334,9 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 \noindent
 \textbf{Основные результаты:}
 \begin{enumerate}
-    \item \textbf{Задание 1:} Точность Gemini — 95\%, GLM-5 — 90\%. Основные ошибки связаны со смежными темами (RNN/LSTM vs классический ML).
-    \item \textbf{Задание 2:} Precision 95\%, Recall 90\%, F1-score 92.5\%. Жёсткие ограничения в промпте успешно подавили галлюцинации.
-    \item \textbf{Задание 3:} Создан опорный кадр и промпт движения для визуализации системы компьютерного зрения в умном городе. Выявлены артефакты геометрии при сложной кинематике.
+\item \textbf{Задание 1:} Точность Gemini — 95\%, GLM-5 — 90\%. Основные ошибки связаны со смежными темами (RNN/LSTM vs классический ML).
+\item \textbf{Задание 2:} Precision 95\%, Recall 90\%, F1-score 92.5\%. Жёсткие ограничения в промпте успешно подавили галлюцинации.
+\item \textbf{Задание 3:} Создан опорный кадр и промпт движения для визуализации системы компьютерного зрения в умном городе. Выявлены артефакты геометрии при сложной кинематике.
 \end{enumerate}
 
 \noindent
