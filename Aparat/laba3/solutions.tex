@@ -1,0 +1,173 @@
+
+% ---------------------- Эксперимент 1 ----------------------
+\section{Игра на реакцию (вариант 13)}
+\subsection*{Условие по варианту}
+\begin{itemize}
+	\item Начальное состояние светодиодов: \textbf{включены} (знак «+» в таблице).
+	\item Направление циклического движения: \textbf{справа} (светодиоды загораются последовательно справа налево).
+	\item Количество светодиодов: \textbf{6}.
+\end{itemize}
+При нажатии на кнопку из бегущей последовательности выбирается только один светодиод (фиксация случайного момента). Схема собрана без использования Arduino и программирования.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z1/0.png}
+	\caption{Схема сборки}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z1/1.png}
+	\caption{Принципиальная схема ч.1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z1/2.png}
+	\caption{Принципиальная схема ч.2}
+\end{figure}
+
+\subsection*{Ссылка на рабочий проект}
+\url{https://www.tinkercad.com/things/2wlgeDbk03s-l3z1?sharecode=DB_PzyGiwilQSUGEBgWmMIwVAxR5XvV4WwWLfSuhy9M}
+
+\noindent
+В проекте реализован бегущий огонь на 6 светодиодах с управлением от кнопки (выбор одного светодиода). Используются сдвиговые регистры и таймер 555 для генерации тактов.
+
+% ---------------------- Эксперимент 2 ----------------------
+\newpage
+\section{Декодер (вариант 13)}
+\subsection*{Условие по варианту}
+\begin{itemize}
+	\item Начальное число задаётся переключателем в \textbf{двоичном} коде (4 бита).
+	\item Преобразование: двоичный код $\rightarrow$ код Грея.
+	\item Смещение результата: $+13$ (т.е. к полученному коду Грея прибавляется число 13, затем результат выводится на светодиоды в двоичной форме).
+\end{itemize}
+Запрещено использовать микросхему сумматора. Разрешены логические элементы 74HC04, 74HC86, 74HC32, 74HC08.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/0.png}
+	\caption{Схема сборки}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/1.png}
+	\caption{Принципиальная схема ч.1}
+\end{figure}
+
+\newpage
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z2/x.png}
+	\caption{Таблица истинности и формулы}
+\end{figure}
+
+\subsection*{Ссылка на рабочий проект}
+\url{https://www.tinkercad.com/things/936sfZ1L713-l3z2?sharecode=9oa_ye58lNOYYU49e2HYsgFV54-JXeO-KtlbIti9U-k}
+
+% ---------------------- Эксперимент 3 ----------------------
+\newpage
+\section{Декодер+ (вариант 13)}
+\subsection*{Условие по варианту}
+\begin{itemize}
+	\item Начальное число – 3-битный \textbf{двоичный} код. 
+	\item Выходное число – 7-битный код «Термометр» (термометрический код, где количество единиц равно значению числа).
+	\item Используемые микросхемы: \textbf{74HC32} (OR) и \textbf{74HC08} (AND).
+\end{itemize}
+Преобразование реализуется комбинационной логикой без программирования.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z3/0.png}
+	\caption{Схема сборки}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z3/1.png}
+	\caption{Принципиальная схема ч.1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z3/2.png}
+	\caption{Принципиальная схема ч.2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z3/x.png}
+	\caption{Таблица истинности и формулы}
+\end{figure}
+
+
+\subsection*{Ссылка на рабочий проект}
+\url{https://www.tinkercad.com/things/2c9JElOjNOU-l3z3?sharecode=Z-9qWIKNeuXlnMeC_AkCUUgPS2dOu5rN7X838zCk9iU}
+% ---------------------- Эксперимент 4 ----------------------
+\newpage
+\section{Секундомер (вариант 13)}
+\subsection*{Условие по варианту}
+\begin{itemize}
+	\item Последовательность отображаемых чисел: \textbf{нечётные} от 0 до 99 (1, 3, 5, …, 99).
+	\item Сброс (счёт начинается сначала) происходит при достижении числа \textbf{83}.
+\end{itemize}
+Схема реализована на счётчиках и логических элементах, без Arduino.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z4/0.png}
+	\caption{Схема сборки}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z4/1.png}
+	\caption{Принципиальная схема ч.1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z4/2.png}
+	\caption{Принципиальная схема ч.2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z4/3.png}
+	\caption{Принципиальная схема ч.3}
+\end{figure}
+
+\subsection*{Ссылка на рабочий проект}
+\url{https://www.tinkercad.com/things/0fD9iNtFTNa-l3z4?sharecode=Hk4DchRscwcwfyFa3AATBzpfUVvMH1XbEppzD-mhOFY}
+
+% ---------------------- Эксперимент 5 ----------------------
+\newpage
+\section{Секундомер+ (вариант 13)}
+\subsection*{Условие по варианту}
+\begin{itemize}
+	\item Счёт с шагом 4: 00, 04, 08, 12, 16, …, 96, затем сброс и повтор.
+	\item Допустимые числа только кратные 4 (00, 04, 08, …, 96).
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z5/0.png}
+	\caption{Схема сборки}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z5/1.png}
+	\caption{Принципиальная схема ч.1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=17cm]{z5/2.png}
+	\caption{Принципиальная схема ч.2}
+\end{figure}
+
+\subsection*{Ссылка на рабочий проект}
+\url{https://www.tinkercad.com/things/0jzAl01p35U-l3z5?sharecode=YYv1C4eRDJ45LtvSSXwr_agcncXQ933AuRm0YgQSqCY}
