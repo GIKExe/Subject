@@ -235,7 +235,7 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 \text{Precision} = \frac{18}{18+0} \approx 95\% \quad \text{Recall} = \frac{18}{18+0} \approx 90\% \quad \text{F1-score} = 92.5\%
 \end{equation}
 
-\newpage
+% \newpage
 \section{Задание №3: Проектирование синтетического видеоконтента}
 \subsection{Концепция}
 \noindent
@@ -243,6 +243,7 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 Тип сценария: Симуляция (CV)\\
 Сюжет: Визуализация «умного города»: вид с дрона на перекресток, где машины подсвечиваются рамками распознавания.
 
+\newpage
 \subsection{Опорный кадр (Keyframe)}
 \noindent
 \textbf{Инструмент:} Kandinsky 3.1\\
@@ -250,21 +251,47 @@ DL & 0 & 0 & 0 & 3 \\ \hline
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Аэрофотосъемка перекрестка с bounding box'ами вокруг машин, неоновыми линиями нейронной сети, вид сверху под углом] \vspace{1cm}}}
+% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Аэрофотосъемка перекрестка с bounding box'ами вокруг машин, неоновыми линиями нейронной сети, вид сверху под углом] \vspace{1cm}}}
+\includegraphics[width=15cm]{1.png}
 \caption{Сгенерированный опорный кадр}
 \end{figure}
 
 \subsection{Динамика и Результат}
 \noindent
-\textbf{Инструмент:} Luma Dream Machine (Image-to-Video)\\
+% \textbf{Инструмент:} Luma Dream Machine (Image-to-Video)\\
+\textbf{Инструмент:} AIReel 3.0 (Image-to-Video)\\
 \textbf{Motion Prompt:} Плавное движение камеры вперед и немного вниз, приближение к перекрестку. Bounding box'ы вокруг машин пульсируют с лёгким свечением. Цифровые линии нейронной сети медленно перемещаются и мерцают. Машины плавно движутся по дорогам. Камера медленно поворачивается вправо на 15 градусов.
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
-\caption{Результат генерации видео (раскадровка)}
+% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
+\includegraphics[width=15cm]{2.png}
+\caption{Результат генерации видео (раскадровка) ч.1}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
+\includegraphics[width=15cm]{3.png}
+\caption{Результат генерации видео (раскадровка) ч.2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
+\includegraphics[width=15cm]{4.png}
+\caption{Результат генерации видео (раскадровка) ч.3}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \fbox{\parbox{12cm}{\centering \vspace{1cm} \textbf{ФОТО:} [Последовательность из 3-4 кадров видео, показывающих движение камеры и анимацию bounding box'ов] \vspace{1cm}}}
+\includegraphics[width=15cm]{5.png}
+\caption{Результат генерации видео (раскадровка) ч.4}
+\end{figure}
+\url{https://www.aireel.net/ru/work/2108260507215195747-1778161904759-ZY3lG}
+
+\newpage
 \subsection{Анализ реализации}
 \noindent
 \textbf{Успехи:} Камера плавно приближается, bounding box'ы пульсируют, машины движутся.\\
@@ -275,7 +302,7 @@ DL & 0 & 0 & 0 & 3 \\ \hline
     \item \textit{``Плавающие'' линии сети:} Полупрозрачные элементы сложно удерживать стабильными. \textit{Исправление:} Сделать слой статичным или убрать.
 \end{itemize}
 
-\newpage
+% \newpage
 \section{Сравнительное тестирование (Бенчмаркинг)}
 \begin{table}[H]
 \centering
