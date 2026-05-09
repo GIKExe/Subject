@@ -1,0 +1,62 @@
+import streamlit as st
+import pandas as pd
+import time
+import random
+from datetime import datetime
+
+st.set_page_config(page_title="Умная парковка", layout="centered", initial_sidebar_state="collapsed")
+
+TEXTS = {
+    "static": {"title": "Умная парковка", "total_label": "Всего мест", "free_label": "Свободно", "occupancy_label": "Загруженность"},
+    "dynamic": {"optimal": "Достаточно свободных мест.", "busy": "Парковка загружена.", "critical": "ВНИМАНИЕ: парковка почти заполнена (свободно < 10%)"},
+    "alerts": {"loading": "Анализ видеопотока..."}
+}
+
+st.markdown("""<style>body{background:#F5F7FA!important;} .parking-space{border-radius:8px;padding:10px;text-align:center;margin:4px;font-weight:600;} .space-free{background:#10B981;color:white;} .space-occupied{background:#EF4444;color:white;} </style>""", unsafe_allow_html=True)
+
+st.title("🅿️ " + TEXTS["static"]["title"])
+
+if 'data' not in st.session_state:
+    st.session_state.data = None
+
+def generate():
+    spaces = []
+    for i in range(1, 51):
+        spaces.append({'id': i, 'status': 'occupied' if random.random()<0.7 else 'free', 'zone': chr(65 + (i-1)//17)})
+    return pd.DataFrame(spaces)
+
+if st.button("🔄 Обновить данные"):
+    with st.spinner(TEXTS["alerts"]["loading"]):
+        time.sleep(random.uniform(0.8, 1.2))
+        st.session_state.data = generate()
+        st.rerun()
+
+if st.session_state.data is None:
+    with st.spinner(TEXTS["alerts"]["loading"]):
+        time.sleep(random.uniform(0.8, 1.2))
+        st.session_state.data = generate()
+
+df = st.session_state.data
+total = len(df); free = len(df[df['status']=='free']); occ = ((total-free)/total)*100
+
+c1,c2,c3 = st.columns(3)
+c1.metric(TEXTS["static"]["total_label"], f"{total}")
+c2.metric(TEXTS["static"]["free_label"], f"{free}", f"{free/total*100:.1f}%")
+c3.metric(TEXTS["static"]["occupancy_label"], f"{occ:.0f}%", f"{100-occ:.0f}% свободно")
+
+if free/total < 0.1: st.error(TEXTS["dynamic"]["critical"])
+elif free/total < 0.3: st.warning(TEXTS["dynamic"]["busy"])
+else: st.success(TEXTS["dynamic"]["optimal"])
+
+st.markdown("### 🅿️ Схема парковки")
+rows = 5
+for r in range(rows):
+    cols = st.columns(10)
+    for c, col in enumerate(cols):
+        idx = r*10 + c + 1
+        status = df[df['id']==idx]['status'].iloc[0]
+        cls = 'space-free' if status=='free' else 'space-occupied'
+        col.markdown(f'<div class="parking-space {cls}">{idx}</div>', unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("<div style='text-align:center;color:#6B7280;font-size:12px;'>Лаб №6 | Промпт-инжиниринг | Вариант 4 | ВятГУ, 2026</div>", unsafe_allow_html=True)

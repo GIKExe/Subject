@@ -1,0 +1,309 @@
+\documentclass[oneside,a4paper,14pt]{extarticle}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[
+a4paper,
+top=2cm,
+bottom=2cm,
+left=2.5cm,
+right=1.5cm
+]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{textcomp}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{mwe}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[all]{xy}
+\usepackage[breaklinks]{hyperref}
+\usepackage{titlesec}
+
+\titleformat{\section}{\normalfont\normalsize\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+\renewcommand\baselinestretch{1.33}
+\setlength{\parindent}{1.25cm}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+    inputencoding=cp1251,
+    extendedchars=true,
+}
+
+\begin{document}
+  \newpage\thispagestyle{empty}
+  \begin{center}
+    МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+    РОССИЙСКОЙ ФЕДЕРАЦИИ\\
+    ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+    ОБРАЗОВАТЕЛЬНОЕ УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+    «ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+    Институт математики и информационных систем\\
+    Факультет автоматики и вычислительной техники\\
+    Кафедра электронных вычислительных машин
+  \end{center}
+  \vspace{20mm}
+  \begin{center}
+    Отчёт по лабораторной работе №6\\
+    по дисциплине\\
+    <<Промпт-инжиниринг>>\\
+    <<Проектирование комплексного промпта для мультимодальной генерации>>\\
+    <<Вариант 4>>\\
+  \end{center}
+  \vspace{48mm}
+  \noindent
+  Выполнил студент гр. ИВТб-1303-06-00 \hfill \rule[-0.5mm]{30mm}{0.15mm}\,/Гортоломей И.К./\\[0.5cm]
+  Проверил доцент кафедры ЭВМ \hfill \rule[-0.5mm]{30mm}{0.15mm}\,/Колупаев А.В./
+  \vfill
+  \begin{center}
+    Киров\\
+    2026
+  \end{center}
+
+\newpage
+\thispagestyle{empty}
+
+\section*{Введение}
+\noindent
+\textbf{Цель работы:} Формирование системного навыка проектирования мультимодальных генеративных конвейеров (пайплайнов), позволяющих автоматизировать создание минимально жизнеспособных продуктов (MVP) на основе индустриальных кейсов. Освоение методологии <<быстрого прототипирования>> (Rapid Prototyping), при которой инженер управляет нейросетями для последовательной генерации технической документации, визуальных активов и программного кода.
+
+\textbf{Языковые модели, используемые в работе:}
+\begin{itemize}
+    \item \textbf{DeepSeek Chat} --- генерация ТЗ, текстов интерфейса, дизайн-системы, Python-кода;
+    \item \textbf{DALL-E 3} --- генерация логотипа, изображений;
+    \item \textbf{Qwen} --- валидация и итеративная коррекция промптов.
+\end{itemize}
+
+\textbf{Предметная область варианта 4:} Умная городская парковка (Smart City Parking)\\
+\textbf{Роль А (Водитель):} Ищет свободное парковочное место в режиме реального времени. Характер: практичный, ориентированный на скорость принятия решений, требует наглядной информации.\\
+\textbf{Роль Б (Система):} Анализирует видеопоток с камер парковки, определяет занятые/свободные места, визуализирует схему парковки с цветовой индикацией, предоставляет статистику загруженности.\\
+\textbf{Фоновая сцена:} Мобильное приложение с картой парковки, интуитивная навигация, цветовая индикация статуса мест (зелёный --- свободно, красный --- занято), профессиональная аналитическая лексика.
+
+\newpage
+
+\section*{Задание 1: Архитектурный анализ и генерация Технического Задания}
+\noindent
+\textbf{Цель:} Научиться использовать возможности больших языковых моделей в роли системного архитектора для глубокого анализа предметной области, обоснованного выбора технологий быстрого прототипирования и формирования детального Технического Задания, адаптированного под дальнейшую автоматическую кодогенерацию.
+
+\subsection*{1.1 Системный промпт Архитектора}
+\lstinputlisting[language=]{1.nonutf.txt}
+
+\subsection*{1.2 Журнал выбора технологий (Tree of Thoughts)}
+\noindent
+Фрагмент ответа модели с анализом альтернатив:
+
+\noindent
+\textbf{Вариант 1: Python-скрипт с генерацией консольного отчёта}\\
+-- Плюсы: простота реализации, не требует веба, минимальные зависимости.\\
+-- Минусы: неинтерактивен, водитель не видит визуальную схему парковки, нет цветовой индикации.
+
+\noindent
+\textbf{Вариант 2: Веб-приложение на Streamlit (Python)}\\
+-- Плюсы: быстрая разработка, адаптивный интерфейс, поддержка интерактивной графики, встроенные виджеты, легко имитировать задержку <<анализа видео>>.\\
+-- Минусы: требует локальной установки Python для демонстрации.
+
+\noindent
+\textbf{Вариант 3: Чистый HTML/JS (Canvas + Chart.js)}\\
+-- Плюсы: работает в браузере без установки, лёгкий деплой, нативная поддержка мобильных устройств.\\
+-- Минусы: сложно реализовать динамическую обработку данных и имитацию CV-анализа без бэкенда.
+
+\noindent
+\textbf{Вывод:} Выбран \textbf{Вариант 2 (Streamlit + Matplotlib/Plotly)}.\\
+\textbf{Обоснование:} Максимальная скорость разработки MVP, адаптивный дизайн автоматически подстраивается под мобильные экраны, позволяет быстро реализовать логику симуляции CV на Python, наглядная визуализация схемы парковки.
+
+\newpage
+\subsection*{1.3 Итоговое Техническое Задание}
+\lstinputlisting[language=]{2.nonutf.txt}
+
+\subsection*{1.4 Валидация шаблона}
+\noindent
+Для проверки универсальности промпт был протестирован на описании <<Система распознавания номеров автомобилей>>. Структура ТЗ сохранилась, изменились только сущности. Шаблон успешно абстрагируется от предметной области.
+
+\section*{Задание 2: Генерация мультимедийного наполнения и визуальных ресурсов}
+\noindent
+\textbf{Цель:} Научиться проектировать комплексные цепочки промптов для создания согласованного набора текстовых и графических материалов, которые визуально и смыслово соответствуют техническому заданию.
+
+\subsection*{2.1 Описание дизайн-системы}
+\noindent
+Промпт для генерации дизайн-системы:
+\lstinputlisting[language=]{3.nonutf.txt}
+\newpage
+\noindent
+Ответ модели (фрагмент):\\
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Элемент} & \textbf{Описание} & \textbf{Hex-код} \\ \hline
+Основной фон & Светлый нейтральный & \#F5F7FA \\ \hline
+Карточки/панели & Белый с тенью & \#FFFFFF \\ \hline
+Акцентный цвет & Городской синий & \#2563EB \\ \hline
+Свободно (успех) & Яркий зелёный & \#10B981 \\ \hline
+Занято (ошибка) & Насыщенный красный & \#EF4444 \\ \hline
+Основной текст & Тёмно-серый & \#1F2937 \\ \hline
+Второстепенный текст & Серый & \#6B7280 \\ \hline
+\end{tabular} \\
+
+\noindent
+\textbf{Типографика:} Заголовки: Inter SemiBold 20-24px. Метрики: Roboto Mono Bold 28-32px.\\
+\textbf{Тональность:} Лаконичная, информационная, ориентированная на быстрое восприятие.
+
+\subsection*{2.2 Галерея ассетов}
+\noindent
+Тексты интерфейса (JSON):
+\lstinputlisting[language=]{4.nonutf.txt}
+
+\newpage
+\noindent
+Промпт для логотипа (DALL-E 3):
+\begin{lstlisting}[language=]
+Minimalist logo for smart city parking mobile app, clean modern design, 
+icon combining parking letter P with checkmark or location pin, 
+color scheme: blue #2563EB and green #10B981, simple geometric shapes, 
+flat design style, 1024x1024, transparent background.
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{1.png}
+  \caption{Сгенерированный логотип приложения}
+\end{figure}
+
+\newpage
+\noindent
+Промпт для иконки парковочного места (свободное):
+\begin{lstlisting}[language=]
+Simple icon for free parking space, green square or circle with white checkmark, 
+flat design, #10B981 color, minimal style, 256x256, transparent background.
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=13cm]{2.png}
+  \caption{Иконка статуса "Свободно"}
+\end{figure}
+
+\noindent
+Промпт для иконки парковочного места (занятое):
+\begin{lstlisting}[language=]
+Simple icon for occupied parking space, red square or circle with X mark, 
+flat design, #EF4444 color, minimal style, 256x256, transparent background.
+\end{lstlisting}
+
+\newpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=13cm]{3.png}
+  \caption{Иконка статуса "Занято"}
+\end{figure}
+
+\subsection*{2.3 Эволюция стиля}
+\noindent
+Исходная генерация статусных сообщений содержала излишне эмоциональные формулировки (<<Срочно ищите другое место!>>). После добавления в промпт директивы <<использовать лаконичный информационный стиль, избегать повелительного наклонения>> модель выдала исправленный вариант.
+
+\newpage
+
+\section*{Задание 3: Мультимодальная генерация кода и сборка интерфейса}
+\noindent
+\textbf{Цель:} Научиться конструировать комплексные системные промпты, которые позволяют автоматизировать процесс разработки ПО, объединяя структурированные технические требования и подготовленный мультимедийный контент в функциональный прототип.
+
+\subsection*{3.1 Комплексный промпт Разработчика}
+\lstinputlisting[language=]{5.nonutf.txt}
+
+\subsection*{3.2 Журнал визуальной отладки (Self-Correction Log)}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|p{4cm}|p{5cm}|p{3.5cm}|}
+\hline
+\textbf{№} & \textbf{Проблема} & \textbf{Промпт коррекции} & \textbf{Результат} \\ \hline
+1 & Схема не помещалась на мобильном & <<Сделай сетку адаптивной: используй st.columns с media queries>> & Добавлена адаптивная вёрстка \\ \hline
+2 & Цвета не соответствовали ТЗ & <<Примени CSS: фон \#F5F7FA, свободные \#10B981, занятые \#EF4444>> & Исправлена цветовая схема \\ \hline
+3 & Отсутствовала имитация анализа & <<Оберни генерацию в st.spinner(). Добавь time.sleep()>> & Реализована задержка \\ \hline
+4 & Метрики не обновлялись & <<Добавь st.session\_state и st.rerun() после обновления>> & Исправлена логика \\ \hline
+\end{tabular}
+\caption{Итерации отладки кода}
+\end{table}
+
+\subsection*{3.3 Финальный результат}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{4.png}
+  \caption{Главный экран дашборда}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{5.png}
+  \caption{Процесс симуляции CV-анализа}
+\end{figure}
+
+\subsection*{3.4 Листинг финального кода}
+\lstinputlisting[language=Python]{6.nonutf.txt}
+
+\section*{Заключение}
+\noindent
+В ходе выполнения лабораторной работы был реализован полный цикл создания MVP мобильного приложения для мониторинга парковочных мест с использованием методологии <<быстрого прототипирования>> на основе генеративных моделей.
+
+\noindent
+\textbf{Оценка моделей:}
+\begin{itemize}
+    \item \textbf{DeepSeek Chat} демонстрирует высокую точность в генерации архитектурных решений и кода на Python.
+    \item \textbf{DALL-E 3} корректно генерирует логотипы при чётком описании стиля. Требует указания негативных подсказок.
+    \item \textbf{Qwen} показал хорошие результаты в валидации и итеративной коррекции промптов.
+\end{itemize}
+
+\noindent
+\textbf{Выявленные ограничения:}
+\begin{enumerate}
+    \item CSS-стилизация Streamlit затруднена динамической генерацией классов.
+    \item Модели могут пропускать адаптивную вёрстку без явного требования.
+    \item Симуляция <<анализа видео>> требует точного указания временных параметров.
+\end{enumerate}
+
+\noindent
+\textbf{Наиболее эффективные техники промпт-инжиниринга:}
+\begin{itemize}
+    \item \textbf{Tree of Thoughts} --- генерация и сравнение альтернатив перед выбором финального решения позволила избежать избыточной архитектуры.
+    \item \textbf{Self-Correction Loop} --- итеративная отладка через обратную связь позволила исправить критические проблемы без ручного вмешательства.
+    \item \textbf{Chain of Density} --- применение техники <<уплотнения смысла>> при генерации ТЗ обеспечило техническую конкретику.
+\end{itemize}
+
+\section*{Приложения}
+\subsection*{Приложение А. Инструкции по запуску}
+\begin{lstlisting}[language=bash]
+pip install streamlit pandas
+streamlit run main.py
+\end{lstlisting}
+Откройте браузер по адресу: \url{http://localhost:8501}
+
+\subsection*{Приложение Б. Ссылки}
+Ссылка на репозиторий: \url{https://github.com/GIKExe/Subject/tree/main/Prompt/laba6}
+
+\newpage
+\subsection*{Приложение В. Медиа-материалы}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=10cm]{6.png}
+  \caption{Мобильная адаптация}
+\end{figure}
+
+\end{document}
