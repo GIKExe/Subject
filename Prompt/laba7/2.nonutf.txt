@@ -1,0 +1,15 @@
+builder = PromptBuilder()
+print("=== Системная роль ===")
+print(builder.get_system_role())
+
+print("\n=== build_program_prompt без параметров ===")
+try:
+    builder.build_program_prompt()
+except ValueError as e:
+    print(f"Ошибка: {e}")
+
+builder.set_discipline("Программирование на Python").set_level("Курсы")
+print("\n=== build_program_prompt после установки параметров ===")
+messages = builder.build_program_prompt()
+for msg in messages:
+    print(f"{msg['role']}: {msg['content'][:200]}...")

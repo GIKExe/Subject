@@ -1,0 +1,296 @@
+\documentclass[oneside,a4paper,14pt]{extarticle} %размер шрифта 14
+\usepackage[T1,T2A]{fontenc}
+\usepackage[
+a4paper,
+letterpaper,
+top=2cm,
+bottom=2cm,
+left=2.5cm,
+right=1.5cm
+]{geometry}
+\usepackage[utf8]{inputenc} %кодировка текста
+\usepackage[russian]{babel} %поддержка русского языка
+\usepackage{textcomp} %текстовые символы
+\usepackage{indentfirst} %корректировка отступов
+\usepackage{listings} %для кода !!!
+\usepackage{listingsutf8}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem} %для нумерации буквами
+\usepackage{graphicx} %работа с изображениям
+\usepackage{mwe} % for blindtext and example-image-a in example
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{amsmath}  % для формул и символов
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[all]{xy}
+\usepackage[breaklinks]{hyperref}
+\usepackage{xurl}
+% размер кегля у заголоков разделов
+\usepackage{titlesec}
+
+\titleformat{\section}
+{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\renewcommand\baselinestretch{1.33}
+\normalsize % межстрочный интервал
+\setlength{\parindent}{1.25cm}
+\usepackage{indentfirst}
+
+% настройки листинга
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  inputencoding=cp1251,
+  extendedchars=true,
+}
+
+\begin{document}
+	\newpage\thispagestyle{empty}
+	\begin{center}
+		МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			РОССИЙСКОЙ ФЕДЕРАЦИИ
+			ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+			ОБРАЗОВАТЕЛЬНОЕ
+			УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+			Институт математики и информационных систем\\
+			Факультет автоматики и вычислительной техники\\
+			Кафедра электронных вычислительных машин
+	\end{center}
+	\vspace{20mm}
+
+	\begin{center}
+		Отчёт по лабораторной работе №7\\
+		по дисциплине\\
+		<<Промпт-инжиниринг>>\\
+		<<Разработка инструментов автоматизации на базе API больших языковых моделей>>\\
+		<<Вариант 4>>\\
+	\end{center}
+	\vspace{48mm}
+
+	\noindent
+	Выполнил студент гр. ИВТб-1303-06-00 \hfill \rule[-0,5mm]{30mm}{0.15mm}\,/Гортоломей И.К./
+	\newline
+	Проверил доцент кафедры ЭВМ \hfill \rule[-0,5mm]{30mm}{0.15mm}\,/Колупаев А.В./
+
+	\vfill
+	\begin{center}
+		Киров\\
+		2026
+	\end{center}
+
+	\newpage
+	\thispagestyle{empty}
+
+\section*{Введение}
+\noindent
+\textbf{Цель работы:} Формирование профессиональных компетенций в области проектирования и реализации программных систем, использующих возможности больших языковых моделей (LLM) через API. Необходимо научиться инкапсулировать логику промпт-инжиниринга в программный код, создавать устойчивые к ошибкам алгоритмы генерации контента и освоить методы автоматической валидации и структурирования выходных данных нейросетей для решения прикладных инженерных задач.
+
+\noindent
+\textbf{Используемые модели и API:}
+\begin{itemize}
+    \item OpenRouter API с моделью \texttt{google/gemma-4-31b-it:free} --- основная LLM для генерации учебных программ.
+    \item Python 3.10+ --- язык реализации.
+    \item Библиотеки: \texttt{openai}, \texttt{json}, \texttt{time}, \texttt{google.colab.userdata} (для безопасного хранения ключа).
+\end{itemize}
+
+\noindent
+\textbf{Предметная область варианта 4: Конструктор учебных программ} \\
+Программа автоматически создаёт детальные учебные программы по заданной дисциплине и уровню подготовки (Школа/ВУЗ/Курсы). Результат включает: почасовой план занятий, список необходимой литературы, темы для домашних заданий и контрольных работ. Всё адаптируется под указанный уровень подготовки. Результат сохраняется в JSON и форматированном текстовом документе.
+
+\newpage
+\section{Задание №1: Проектирование архитектуры генератора промптов}
+\subsection{Анализ требований варианта}
+\noindent
+Вариант №4 (тип «Генератор текстов») требует:
+\begin{itemize}
+    \item \textbf{Переменные:} Название дисциплины, \\ Уровень подготовки (Школа/ВУЗ/Курсы).
+    \item \textbf{Константы:} Системная роль («Ты — опытный методист...»), структура учебной программы, формат вывода.
+    \item \textbf{Этапы:} 1) Сгенерировать общую структуру курса; 2) Детализировать почасовой план; 3) Подобрать литературу; 4) Создать темы ДЗ.
+\end{itemize}
+
+\subsection{Интерфейс класса PromptBuilder}
+\noindent
+Создан класс, отвечающий только за сборку текста промпта (не обращается к API).
+\begin{itemize}
+    \item \texttt{\_\_init\_\_()} --- инициализация системной роли.
+    \item \texttt{set\_discipline(discipline)} --- установка названия дисциплины.
+    \item \texttt{set\_level(level)} --- установка уровня подготовки.
+    \item \texttt{build\_program\_prompt()} --- возвращает список сообщений для генерации учебной программы.
+    \item \texttt{get\_system\_role()} --- геттер системной роли.
+\end{itemize}
+
+\newpage
+\subsection{Листинг класса PromptBuilder}
+\lstinputlisting{1.nonutf.txt}
+
+\newpage
+\subsection{Тестирование сборки промптов (без API)}
+\noindent
+Для проверки класса был выполнен следующий тестовый код:
+\lstinputlisting{2.nonutf.txt}
+
+\noindent
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{1.png}
+  \caption{результат тестирования класса PromptBuilder}
+\end{figure}
+
+\newpage
+\section{Задание №2: Реализация программного взаимодействия с API}
+\subsection{Выбор API и параметры генерации}
+\noindent
+Использован OpenRouter API (бесплатный доступ) с моделью \\ \texttt{google/gemma-4-31b-it:free}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|p{11cm}|}
+\hline
+\textbf{Параметр} & \textbf{Значение} & \textbf{Обоснование} \\ \hline
+temperature & 0.3 & Низкая температура для точного следования формату JSON и уменьшения галлюцинаций. \\ \hline
+top\_p & 0.95 & Стандартное значение, обеспечивающее разумное разнообразие. \\ \hline
+\end{tabular}
+\end{table}
+
+\noindent
+API-ключ хранится в секретах Google Colab \\ (переменная OPENROUTER\_API\_KEY), доступ через \texttt{userdata.get()}.
+
+\subsection{Реализация основного конвейера}
+\noindent
+Скрипт выполняет следующие шаги:
+\begin{enumerate}
+    \item Создание экземпляра PromptBuilder с параметрами.
+    \item Генерация учебной программы через \texttt{generate\_curriculum()}.
+    \item Автоматическая очистка JSON от постороннего текста.
+    \item Сохранение программы в \texttt{curriculum\_\{discipline\}.json} и \texttt{.txt}.
+\end{enumerate}
+
+\newpage
+\subsection{Листинг функций взаимодействия с API}
+\lstinputlisting{3.nonutf.txt}
+
+\subsection{Пример выполнения и структуры JSON-ответа}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{2.png}
+  \caption{результат выполнения программы}
+\end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=17cm]{4.png}
+  \caption{Фрагмент текстового файла с отформатированной учебной программой}
+\end{figure}
+\newpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{3.png}
+  \caption{Фрагмент JSON-файла}
+\end{figure}
+\newpage
+
+\section{Задание №3: Тестирование, оценка качества и универсальности}
+\subsection{Тестовые сценарии}
+\noindent
+Программа запущена на трёх различных наборах входных данных:
+\begin{enumerate}
+    \item Дисциплина «Программирование на Python», уровень «Курсы»
+    \item Дисциплина «История России», уровень «Школа»
+    \item Дисциплина «Машинное обучение», уровень «ВУЗ»
+\end{enumerate}
+
+\noindent
+\textbf{Пример «сырого» ответа модели до очистки:}
+\begin{verbatim}
+Хорошо, вот учебная программа по вашему запросу:
+
+```json
+{
+  "discipline": "Программирование на Python",
+  "level": "Курсы",
+  ...
+}
+```
+Надеюсь, эта программа будет полезна!
+\end{verbatim}
+\newpage
+
+\subsection{Результаты тестирования}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{3cm}|l|p{2cm}|l|l|}
+\hline
+\textbf{Тест} & \textbf{Дисциплина} & \textbf{Уровень} & \textbf{JSON валиден} & \textbf{Часы} & \textbf{Литература/ДЗ} \\ \hline
+1 & Програм- мирование на Python & Курсы & Да & 36 часов & 2+1 / 3 темы \\ \hline
+2 & История России & Школа & Да & 34 часа & 3+2 / 4 темы \\ \hline
+3 & Машинное обучение & ВУЗ & Да & 72 часа & 4+3 / 5 тем \\ \hline
+\end{tabular}
+\end{table}
+
+% \noindent
+% МЕДИА: [Скриншоты трёх сгенерированных текстовых файлов с учебными программами для разных уровней]
+
+\subsection{Анализ ошибок и их исправление}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{5cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{№} & \textbf{Проблема} & \textbf{Корректировка} & \textbf{Результат} \\ \hline
+1 & Модель возвращала JSON с лишним текстом & Добавлена очистка: поиск символов \texttt{\{} и \texttt{\}} с обрезкой строки & Парсинг стал стабильным \\ \hline
+2 & Для школьного уровня программа была слишком сложной & Усилен системный промпт: явное указание «используй доступный язык» & Программы адаптированы под уровень \\ \hline
+3 & Иногда не хватало токенов & Убран max\_tokens & Все разделы генерируются полностью \\ \hline
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Вывод по тестированию:} Инструмент успешно генерирует учебные программы для различных дисциплин и уровней подготовки. Программа универсальна: достаточно изменить входные параметры, чтобы получить новую программу без изменения кода.
+
+\newpage
+\section*{Заключение}
+\noindent
+\textbf{Оценка эффективности автоматизации:} Разработанный конструктор учебных программ полностью автоматизирует создание детальных образовательных программ. Время обработки одного запроса составляет около 30-60 секунд. При ручном составлении аналогичного объёма потребовалось бы не менее 2-4 часов. Экономия времени: в 120-240 раз.
+
+\noindent
+\textbf{Выявленные ограничения:}
+\begin{itemize}
+    \item Лимиты токенов: для очень подробных программ может потребоваться увеличение max\_tokens.
+    \item Скорость API: бесплатные тарифы OpenRouter имеют задержки.
+    \item Качество русского языка: Gemma-4 иногда использует неестественные обороты.
+    \item Актуальность литературы: требуется ручная проверка изданий.
+\end{itemize}
+
+\noindent
+\textbf{Наиболее эффективные техники промпт-инжиниринга:}
+\begin{itemize}
+    \item Few-Shot через JSON-схему: добавление детальной структуры ожидаемого JSON улучшило качество ответов.
+    \item Conditional Prompting: различные инструкции для разных уровней подготовки позволили адаптировать программы без изменения кода.
+    \item Self-Correction: автоматическая очистка ответа от лишнего текста позволила избежать падений при парсинге.
+    \item Разделение ответственности: класс PromptBuilder изолирует конструирование промптов.
+\end{itemize}
+
+\section*{Приложения}
+\noindent
+\textbf{Приложение А. Тестовые данные}
+\lstinputlisting[language=]{5.nonutf.txt}
+
+\noindent
+\textbf{Приложение Б. Ссылки} \\
+Google Colab Notebook: \url{https://colab.research.google.com/drive/1g8o3OJALW7QbAk1AI3AONqY8urqNdfj7?usp=sharing} \\
+GitHub: \url{https://github.com/GIKExe/Subject/tree/main/Prompt/laba7}
+
+\end{document}

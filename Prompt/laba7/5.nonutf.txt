@@ -1,0 +1,8 @@
+test_cases = [
+    {"discipline": "Программирование на Python", "level": "Курсы"},
+    {"discipline": "История России", "level": "Школа"},
+    {"discipline": "Машинное обучение", "level": "ВУЗ"},
+    {"discipline": "Английский язык", "level": "Школа"},
+    {"discipline": "Веб-разработка", "level": "Курсы"},
+    {"discipline": "Высшая математика", "level": "ВУЗ"}
+]
