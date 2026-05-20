@@ -1,0 +1,16 @@
+# ѕоиск аномалий составной маской
+mask_anomaly = (data['turb'] < 0) | (data['cl'] < 0) | \
+			   (data['ph'] < 6.5) | (data['ph'] > 8.5) | \
+			   ~np.isfinite(data['turb']) | ~np.isfinite(data['cl'])
+
+# ѕредварительна€ замена NaN/Inf медианами
+for f in ['turb', 'ph', 'cl', 'flow']:
+	col = data[f]
+	bad = ~np.isfinite(col)
+	if np.any(bad):
+		col[bad] = np.nanmedian(col)
+
+# ќчистка согласно заданию (без циклов по строкам)
+data['turb'] = np.where(data['turb'] < 0, 0.0, data['turb'])
+data['cl']   = np.where(data['cl'] < 0, 0.0, data['cl'])
+data['ph']   = np.clip(data['ph'], 6.5, 8.5)
