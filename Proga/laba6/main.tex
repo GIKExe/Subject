@@ -176,7 +176,7 @@ mavg[k-1:] = (cs[k-1:] - np.concatenate(([0.0], cs[:-k]))) / k
 \subsection*{Этапы 5--10}
 \begin{itemize}
 	\item Производные признаки: \texttt{clean\_idx = 1.0 / (turb + 1e-8)}, \texttt{cl\_eff = cl / (flow + 1e-8)}.
-	\item Условная агрегация: составная маска \texttt{(filter\_id == fid) \& (flow > mean\_flow)}.
+	\item Условная агрегация: c. маска \texttt{(filter\_id == fid) \& (flow > mean\_flow)}.
 	\item Лаговые признаки: \texttt{lag1 = np.roll(turb, 1)}, анализ через \texttt{np.sign} и \texttt{np.bincount}.
 	\item IQR-замена: границы $[Q_1 - 1.5\cdot IQR, Q_3 + 1.5\cdot IQR]$ вычислены внутри групп.
 	\item Проверка логики: предметные правила для питьевой воды, замена через \texttt{np.where}.
