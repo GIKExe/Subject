@@ -76,7 +76,7 @@ def _sort_and_dump(records: np.ndarray, total: int, keyIndex: int, ascending: bo
 	view.tofile(out_path)  # Сброс бинарного дампа
 
 def external_sort(path: bytes, keyIndex: int, ascending: bool, progressCallback: Callable[[float], None]) -> None:
-	path = path.decode()
+	path = path.decode() # type: ignore
 	temp_dir = Path("temp")
 	if temp_dir.exists():
 		shutil.rmtree(temp_dir)
@@ -244,4 +244,4 @@ if __name__ == "__main__":
 	# 3 = level
 	# 4 = hours
 	# 5 = vac_ban
-	external_sort("data.csv", 0, True, progress)
+	external_sort(b"data.csv", 0, True, progress)
