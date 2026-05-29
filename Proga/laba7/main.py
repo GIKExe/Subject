@@ -1,205 +1,505 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from tkinter import messagebox, filedialog
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tk import NavigationToolbar2Tk
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
 import os
+from typing import Optional, Literal
+from pathlib import Path
 
-# =============================================================================
-# Этап 1. Инициализация и загрузка данных
-# =============================================================================
-df_raw = None			# Исходные данные
-df_work = None			# Рабочая копия
-fig = plt.Figure(figsize=(9, 5.5), dpi=100)
-canvas = None
-current_chart = "line"
-VARIANT_NUMBER = 20
+# ============================================================================
+# Константы и глобальные переменные
+# ============================================================================
 
-# Настройка шрифтов для кириллицы
-plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
-plt.rcParams['axes.unicode_minus'] = False
+VARIANT_NUMBER: int = 20
+CURRENT_CHART: Literal["line", "bar", "scatter", "heatmap"] = "line"
 
-if not os.path.exists('data.csv'):
-	raise FileNotFoundError("Файл data.csv не найден в директории скрипта.")
+# Хранилище данных
+df_raw: Optional[pd.DataFrame] = None
+df_work: Optional[pd.DataFrame] = None
+fig: Optional[Figure] = None
+canvas: Optional[FigureCanvasTkAgg] = None
 
-df_raw = pd.read_csv('data.csv')
-print(f"✅ Этап 1: Загружено {df_raw.shape[0]} строк из data.csv")
 
-# =============================================================================
-# Этап 2. Предобработка и Feature Engineering + Этап 0 (4 признака)
-# =============================================================================
-def preprocess_data():
-	global df_raw, df_work
-	df_work = df_raw.copy()	# Правило 6.3: Изоляция изменений через .copy()
+def setup_matplotlib_style() -> None:
+    """Настройка шрифтов matplotlib для корректного отображения кириллицы."""
+    plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
+    plt.rcParams['axes.unicode_minus'] = False
 
-	# 1. Фильтрация по условию варианта
-	df_work['turb'] = df_work['turb'].clip(lower=0)				# turb < 0 → 0
-	df_work['cl'] = df_work['cl'].clip(lower=0)				# cl < 0 → 0
-	df_work['ph'] = df_work['ph'].clip(lower=6.5, upper=8.5)	# pH в норме [6.5; 8.5]
 
-	# 2. Безопасное вычисление производного признака (4 категории по ТЗ)
-	df_work['dt'] = pd.to_datetime(df_work['ts'], unit='s')
+def load_data(filepath: str) -> pd.DataFrame:
+    """
+    Загрузка данных из CSV файла.
+    
+    Args:
+        filepath: Путь к файлу с данными
+        
+    Returns:
+        DataFrame с загруженными данными
+        
+    Raises:
+        FileNotFoundError: Если файл не найден
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Файл {filepath} не найден в директории скрипта.")
+    
+    dataframe = pd.read_csv(filepath)
+    print(f"Загружено {dataframe.shape[0]} строк из {filepath}")
+    return dataframe
 
-	df_work['ph_status'] = pd.cut(
-		df_work['ph'],
-		bins=[0, 6.5, 8.5, 14],
-		labels=['ниже нормы', 'норма', 'выше нормы'],
-		include_lowest=True
-	).astype('category')
 
-	df_work['season'] = pd.cut(
-		df_work['dt'].dt.month,
-		bins=[0, 3, 6, 9, 12],
-		labels=['зима', 'весна', 'лето', 'осень'],
-		include_lowest=True
-	).astype('category')
+# ============================================================================
+# Этап 2. Предобработка данных и создание новых признаков
+# ============================================================================
 
-	df_work['compliance_flag'] = (
-		(df_work['turb'] <= 1.5) &
-		df_work['ph'].between(6.5, 8.5) &
-		df_work['cl'].between(0.3, 0.5)
-	)
+def preprocess_data(raw_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Предобработка данных: фильтрация, создание производных признаков,
+    вычисление скользящих средних и трендов.
+    
+    Args:
+        raw_data: Исходный DataFrame
+        
+    Returns:
+        Обработанный DataFrame с новыми признаками
+    """
+    # Создаём рабочую копию данных
+    work_data = raw_data.copy()
+    
+    # 1. Очистка данных: убираем отрицательные значения и выбросы
+    work_data['turb'] = work_data['turb'].clip(lower=0)
+    work_data['cl'] = work_data['cl'].clip(lower=0)
+    work_data['ph'] = work_data['ph'].clip(lower=6.5, upper=8.5)
+    
+    # 2. Создание временной метки в формате datetime
+    work_data['dt'] = pd.to_datetime(work_data['ts'], unit='s')
+    
+    # 3. Категоризация уровня pH
+    work_data['ph_status'] = pd.cut(
+        work_data['ph'],
+        bins=[0, 6.5, 8.5, 14],
+        labels=['ниже нормы', 'норма', 'выше нормы'],
+        include_lowest=True
+    ).astype('category')
+    
+    # 4. Определение сезона по месяцу
+    work_data['season'] = pd.cut(
+        work_data['dt'].dt.month,
+        bins=[0, 3, 6, 9, 12],
+        labels=['зима', 'весна', 'лето', 'осень'],
+        include_lowest=True
+    ).astype('category')
+    
+    # 5. Флаг соответствия нормативам
+    work_data['compliance_flag'] = (
+        (work_data['turb'] <= 1.5) &
+        work_data['ph'].between(6.5, 8.5) &
+        work_data['cl'].between(0.3, 0.5)
+    )
+    
+    # 6. Сортировка данных для корректного расчёта скользящих средних
+    work_data = work_data.sort_values(['filter_id', 'ts']).reset_index(drop=True)
+    
+    # 7. Расчёт скользящего среднего турбидности (окно 35 отсчётов)
+    work_data['turb_ma'] = work_data.groupby('filter_id')['turb'].transform(
+        lambda x: x.rolling(window=35, min_periods=1).mean()
+    )
+    
+    # 8. Вычисление разности расхода между соседними измерениями
+    work_data['flow_diff'] = work_data.groupby('filter_id')['flow'].transform(
+        lambda x: x.diff().fillna(x.iloc[0])
+    )
+    
+    # 9. Определение тренда турбидности
+    work_data['turb_diff'] = work_data.groupby('filter_id')['turb_ma'].transform(
+        lambda x: x.diff().fillna(0)
+    )
+    work_data['turb_trend'] = np.sign(work_data['turb_diff']).map({
+        -1: 'снижается',
+         0: 'стабильно',
+         1: 'растёт'
+    }).astype('category')
+    
+    # 10. Удаление промежуточных колонок
+    work_data.drop(columns=['dt', 'turb_ma', 'turb_diff'], inplace=True)
+    work_data['filter_id'] = work_data['filter_id'].astype('category')
+    
+    return work_data
 
-	# Окно k=35: Moving avg turb + np.diff(flow)
-	df_work = df_work.sort_values(['filter_id', 'ts']).reset_index(drop=True)
-	df_work['turb_ma'] = df_work.groupby('filter_id')['turb'].transform(
-		lambda x: x.rolling(window=35, min_periods=1).mean()
-	)
-	df_work['flow_diff'] = df_work.groupby('filter_id')['flow'].transform(
-		lambda x: x.diff().prepend(x.iloc[0])
-	)
 
-	# 3. Вычисление тренда турбидности (правило 6.6: pd.cut / rolling)
-	df_work['turb_diff'] = df_work.groupby('filter_id')['turb_ma'].transform(
-		lambda x: x.diff().fillna(0)
-	)
-	df_work['turb_trend'] = np.sign(df_work['turb_diff']).map({
-		-1: 'снижается',
-		 0: 'стабильно',
-		 1: 'растёт'
-	}).astype('category')
+# ============================================================================
+# Этап 3. Инициализация графического интерфейса
+# ============================================================================
 
-	# 4. Оптимизация категориальных полей
-	df_work.drop(columns=['dt', 'turb_ma', 'turb_diff'], inplace=True)
-	df_work['filter_id'] = df_work['filter_id'].astype('category')
+def create_main_window() -> tk.Tk:
+    """
+    Создание и настройка главного окна приложения.
+    
+    Returns:
+        Настроенное главное окно Tkinter
+    """
+    window = tk.Tk()
+    window.title(f"Дашборд: Вариант {VARIANT_NUMBER}")
+    window.geometry("1000x700")
+    window.configure(bg="#f0f2f5")
+    return window
 
-	return df_work
 
-# Сохранение в формат pandas (.parquet - нативный, сжатый, быстрый)
-print("⏳ Выполняется предобработка...")
-df_work = preprocess_data()
-df_work.to_parquet('data_prepared.parquet', index=False)
-print(f"💾 Этап 0/2: Данные сохранены в data_prepared.parquet")
+def setup_plot_area(parent: tk.Widget) -> tuple[Figure, FigureCanvasTkAgg, NavigationToolbar2Tk]:
+    """
+    Создание области для отображения графиков.
+    
+    Args:
+        parent: Родительский виджет
+        
+    Returns:
+        Кортеж (Figure, FigureCanvasTkAgg, NavigationToolbar2Tk)
+    """
+    # Контейнер для графика
+    plot_frame = tk.Frame(parent, bg="white", relief=tk.SUNKEN, bd=1)
+    plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+    
+    # Создание фигуры Matplotlib
+    figure = Figure(figsize=(9, 5.5), dpi=100)
+    
+    # Интеграция с Tkinter
+    canvas_widget = FigureCanvasTkAgg(figure, master=plot_frame)
+    canvas_widget.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    
+    # Панель инструментов (масштабирование, сохранение)
+    toolbar = NavigationToolbar2Tk(canvas_widget, plot_frame)
+    toolbar.update()
+    toolbar.pack(side=tk.TOP, fill=tk.X)
+    
+    return figure, canvas_widget, toolbar
 
-# =============================================================================
-# Этап 3. Встраивание Figure в Tkinter
-# =============================================================================
-root = tk.Tk()
-root.title(f"Дашборд: Вариант {VARIANT_NUMBER}")
-root.geometry("1000x700")
-root.configure(bg="#f0f2f5")
 
-plot_frame = tk.Frame(root, bg="white", relief=tk.SUNKEN, bd=1)
-plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+# ============================================================================
+# Этап 4. Функции отрисовки графиков
+# ============================================================================
 
-canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+def clear_figure(figure: Figure) -> None:
+    """Очистка фигуры перед новой отрисовкой."""
+    figure.clear()
 
-toolbar = NavigationToolbar2Tk(canvas, plot_frame)
-toolbar.update()
-toolbar.pack(side=tk.TOP, fill=tk.X)
 
-# =============================================================================
-# Этап 4. Функции отрисовки графиков (Seaborn)
-# =============================================================================
-def clear_figure():
-	fig.clear()  # Полная очистка осей перед новой отрисовкой
+def plot_line_chart(figure: Figure, canvas: FigureCanvasTkAgg, data: pd.DataFrame) -> None:
+    """
+    Отрисовка линейного графика динамики турбидности.
+    
+    Args:
+        figure: Объект Figure для отрисовки
+        canvas: Холст для обновления отображения
+        data: DataFrame с данными
+    """
+    clear_figure(figure)
+    axis = figure.add_subplot(111)
+    
+    # Используем копию данных для безопасности
+    plot_data = data.copy()
+    
+    sns.lineplot(
+        data=plot_data,
+        x='ts',
+        y='turb',
+        hue='filter_id',
+        ax=axis
+    )
+    
+    axis.set_title('Динамика турбидности по фильтрам\n(Скользящее окно k=35 учтено при предобработке)')
+    axis.set_xlabel('Время (timestamp)')
+    axis.set_ylabel('Турбидность')
+    
+    figure.tight_layout()
+    canvas.draw_idle()
 
-def plot_line():
-	clear_figure()
-	ax = fig.add_subplot(111)
-	# Правило 6.1: Фильтрация выполняется ДО передачи в Seaborn
-	df_plot = df_work.copy()
-	sns.lineplot(data=df_plot, x='ts', y='turb', hue='filter_id', ax=ax)
-	ax.set_title('Динамика турбидности по фильтрам (Скользящее окно k=35 учтено)')
-	fig.tight_layout()
-	canvas.draw_idle()
 
-def plot_bar():
-	clear_figure()
-	ax = fig.add_subplot(111)
-	# Правило 6.2: Агрегация выполняется внутри callback
-	df_agg = df_work.groupby('filter_id').agg({'turb': 'mean', 'flow': 'max'}).reset_index()
-	sns.barplot(data=df_agg, x='filter_id', y='turb', palette='viridis', ax=ax)
-	ax.set_title('Средняя турбидность vs Макс. расход по фильтрам')
-	fig.tight_layout()
-	canvas.draw_idle()
+def plot_bar_chart(figure: Figure, canvas: FigureCanvasTkAgg, data: pd.DataFrame) -> None:
+    """
+    Отрисовка столбчатой диаграммы средних значений.
+    
+    Args:
+        figure: Объект Figure для отрисовки
+        canvas: Холст для обновления отображения
+        data: DataFrame с данными
+    """
+    clear_figure(figure)
+    axis = figure.add_subplot(111)
+    
+    # Агрегация данных по фильтрам
+    aggregated_data = data.groupby('filter_id').agg({
+        'turb': 'mean',
+        'flow': 'max'
+    }).reset_index()
+    
+    sns.barplot(
+        data=aggregated_data,
+        x='filter_id',
+        y='turb',
+        palette='viridis',
+        ax=axis
+    )
+    
+    axis.set_title('Средняя турбидность по фильтрам')
+    axis.set_xlabel('ID фильтра')
+    axis.set_ylabel('Средняя турбидность')
+    
+    figure.tight_layout()
+    canvas.draw_idle()
 
-def plot_scatter():
-	clear_figure()
-	ax = fig.add_subplot(111)
-	sns.scatterplot(data=df_work, x='ph', y='turb', hue='ph_status', style='season', s=80, ax=ax)
-	ax.set_title('Зависимость мутности от кислотности (группировка по сезонам и статусу pH)')
-	fig.tight_layout()
-	canvas.draw_idle()
 
-def plot_heat_map():
-	clear_figure()
-	ax = fig.add_subplot(111)
-	# Правило 6.6: pivot_table() для подготовки матрицы heatmap
-	pivot = df_work.pivot_table(values='flow', index='season', columns='ph_status', aggfunc='mean', fill_value=0)
-	sns.heatmap(data=pivot, annot=True, cmap='YlGnBu', fmt=".1f", ax=ax)
-	ax.set_title('Средний расход воды: Сезоны × Статус pH')
-	fig.tight_layout()
-	canvas.draw_idle()
+def plot_scatter_chart(figure: Figure, canvas: FigureCanvasTkAgg, data: pd.DataFrame) -> None:
+    """
+    Отрисовка точечной диаграммы зависимости параметров.
+    
+    Args:
+        figure: Объект Figure для отрисовки
+        canvas: Холст для обновления отображения
+        data: DataFrame с данными
+    """
+    clear_figure(figure)
+    axis = figure.add_subplot(111)
+    
+    sns.scatterplot(
+        data=data,
+        x='ph',
+        y='turb',
+        hue='ph_status',
+        style='season',
+        s=80,
+        ax=axis
+    )
+    
+    axis.set_title('Зависимость мутности от кислотности\n(группировка по сезонам и статусу pH)')
+    axis.set_xlabel('pH (кислотность)')
+    axis.set_ylabel('Турбидность')
+    
+    figure.tight_layout()
+    canvas.draw_idle()
 
-# =============================================================================
-# Этап 5. Панель управления и интерактивность
-# =============================================================================
-def set_chart(chart_type):
-	global current_chart
-	current_chart = chart_type
-	refresh_chart()
 
-def refresh_chart():
-	if current_chart == "line":
-		plot_line()
-	elif current_chart == "bar":
-		plot_bar()
-	elif current_chart == "scatter":
-		plot_scatter()
-	elif current_chart == "heatmap":
-		plot_heat_map()
+def plot_heatmap_chart(figure: Figure, canvas: FigureCanvasTkAgg, data: pd.DataFrame) -> None:
+    """
+    Отрисовка тепловой карты корреляции параметров.
+    
+    Args:
+        figure: Объект Figure для отрисовки
+        canvas: Холст для обновления отображения
+        data: DataFrame с данными
+    """
+    clear_figure(figure)
+    axis = figure.add_subplot(111)
+    
+    # Создание сводной таблицы для тепловой карты
+    pivot_table = data.pivot_table(
+        values='flow',
+        index='season',
+        columns='ph_status',
+        aggfunc='mean',
+        fill_value=0
+    )
+    
+    sns.heatmap(
+        data=pivot_table,
+        annot=True,
+        cmap='YlGnBu',
+        fmt=".1f",
+        ax=axis
+    )
+    
+    axis.set_title('Средний расход воды: Сезоны × Статус pH')
+    
+    figure.tight_layout()
+    canvas.draw_idle()
 
-def refresh_data():
-	global df_work
-	print("🔄 Пересчёт данных...")
-	df_work = preprocess_data()
-	refresh_chart()
 
-def export_plot():
-	filepath = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG", "*.png"), ("PDF", "*.pdf")])
-	if filepath:
-		fig.savefig(filepath, dpi=300, bbox_inches='tight')
-		messagebox.showinfo("Успех", f"График сохранён в:\n{filepath}")
+# ============================================================================
+# Этап 5. Обработчики событий и панель управления
+# ============================================================================
 
-ctrl_frame = tk.Frame(root, bg="#f0f2f5")
-ctrl_frame.pack(fill=tk.X, padx=10, pady=5)
+def refresh_chart(
+    chart_type: Literal["line", "bar", "scatter", "heatmap"],
+    canvas: FigureCanvasTkAgg,
+    figure: Figure,
+    data: pd.DataFrame
+) -> None:
+    """
+    Обновление отображаемого графика.
+    
+    Args:
+        chart_type: Тип графика для отображения
+        canvas: Холст для отрисовки
+        figure: Объект Figure
+        data: DataFrame с данными
+    """
+    if chart_type == "line":
+        plot_line_chart(figure, canvas, data)
+    elif chart_type == "bar":
+        plot_bar_chart(figure, canvas, data)
+    elif chart_type == "scatter":
+        plot_scatter_chart(figure, canvas, data)
+    elif chart_type == "heatmap":
+        plot_heatmap_chart(figure, canvas, data)
 
-tk.Button(ctrl_frame, text="Линейный", command=lambda: set_chart('line'), width=14).pack(side=tk.LEFT, padx=4)
-tk.Button(ctrl_frame, text="Столбчатый", command=lambda: set_chart('bar'), width=14).pack(side=tk.LEFT, padx=4)
-tk.Button(ctrl_frame, text="Точечный", command=lambda: set_chart('scatter'), width=14).pack(side=tk.LEFT, padx=4)
-tk.Button(ctrl_frame, text="Тепловая", command=lambda: set_chart('heatmap'), width=14).pack(side=tk.LEFT, padx=4)
-tk.Button(ctrl_frame, text="Обновить", command=refresh_data, width=12, bg="#4CAF50", fg="white").pack(side=tk.RIGHT, padx=4)
-tk.Button(ctrl_frame, text="Экспорт", command=export_plot, width=12, bg="#2196F3", fg="white").pack(side=tk.RIGHT, padx=4)
 
-# Инициализация при запуске
-refresh_chart()
+def on_chart_button_click(
+    chart_type: Literal["line", "bar", "scatter", "heatmap"]
+) -> None:
+    """
+    Обработчик нажатия кнопки выбора типа графика.
+    
+    Args:
+        chart_type: Выбранный тип графика
+    """
+    global CURRENT_CHART
+    CURRENT_CHART = chart_type
+    
+    if canvas is not None and fig is not None and df_work is not None:
+        refresh_chart(chart_type, canvas, fig, df_work)
 
-# =============================================================================
-# Запуск событийного цикла GUI
-# =============================================================================
-print("🚀 Дашборд запущен. Закрытие окна завершит скрипт.")
-root.mainloop()
+
+def on_refresh_button_click() -> None:
+    """Обработчик кнопки обновления данных."""
+    global df_work, CURRENT_CHART
+    
+    if df_raw is not None:
+        print("Пересчёт данных...")
+        df_work = preprocess_data(df_raw)
+        
+        if canvas is not None and fig is not None:
+            refresh_chart(CURRENT_CHART, canvas, fig, df_work)
+
+
+def on_export_button_click(figure: Figure) -> None:
+    """
+    Обработчик кнопки экспорта графика.
+    
+    Args:
+        figure: Объект Figure для сохранения
+    """
+    filepath = filedialog.asksaveasfilename(
+        defaultextension=".png",
+        filetypes=[("PNG файлы", "*.png"), ("PDF файлы", "*.pdf")]
+    )
+    
+    if filepath:
+        try:
+            figure.savefig(filepath, dpi=300, bbox_inches='tight')
+            messagebox.showinfo("Успех", f"График сохранён в:\n{filepath}")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось сохранить файл:\n{e}")
+
+
+def create_control_panel(parent: tk.Widget, figure: Figure) -> tk.Frame:
+    """
+    Создание панели управления с кнопками.
+    
+    Args:
+        parent: Родительский виджет
+        figure: Объект Figure для экспорта
+        
+    Returns:
+        Созданный фрейм с кнопками
+    """
+    control_frame = tk.Frame(parent, bg="#f0f2f5")
+    control_frame.pack(fill=tk.X, padx=10, pady=5)
+    
+    # Кнопки выбора типа графика
+    tk.Button(
+        control_frame,
+        text="Линейный график",
+        command=lambda: on_chart_button_click('line'),
+        width=16
+    ).pack(side=tk.LEFT, padx=4)
+    
+    tk.Button(
+        control_frame,
+        text="Столбчатая диаграмма",
+        command=lambda: on_chart_button_click('bar'),
+        width=16
+    ).pack(side=tk.LEFT, padx=4)
+    
+    tk.Button(
+        control_frame,
+        text="Точечная диаграмма",
+        command=lambda: on_chart_button_click('scatter'),
+        width=16
+    ).pack(side=tk.LEFT, padx=4)
+    
+    tk.Button(
+        control_frame,
+        text="Тепловая карта",
+        command=lambda: on_chart_button_click('heatmap'),
+        width=16
+    ).pack(side=tk.LEFT, padx=4)
+    
+    # Кнопки управления (справа)
+    tk.Button(
+        control_frame,
+        text="Обновить данные",
+        command=on_refresh_button_click,
+        width=14,
+        bg="#4CAF50",
+        fg="white"
+    ).pack(side=tk.RIGHT, padx=4)
+    
+    tk.Button(
+        control_frame,
+        text="Экспорт графика",
+        command=lambda: on_export_button_click(figure),
+        width=14,
+        bg="#2196F3",
+        fg="white"
+    ).pack(side=tk.RIGHT, padx=4)
+    
+    return control_frame
+
+
+# ============================================================================
+# Основная функция запуска приложения
+# ============================================================================
+
+def main() -> None:
+    """Точка входа в приложение."""
+    global df_raw, df_work, fig, canvas, CURRENT_CHART
+    
+    # Настройка matplotlib
+    setup_matplotlib_style()
+    
+    # Загрузка и предобработка данных
+    try:
+        df_raw = load_data('data.csv')
+        df_work = preprocess_data(df_raw)
+        
+        # Сохранение подготовленных данных
+        df_work.to_parquet('data_prepared.parquet', index=False)
+        print("Данные сохранены в data_prepared.parquet")
+        
+    except FileNotFoundError as e:
+        print(f"Ошибка: {e}")
+        return
+    
+    # Создание главного окна
+    root = create_main_window()
+    
+    # Настройка области графика
+    fig, canvas, toolbar = setup_plot_area(root)
+    
+    # Создание панели управления
+    create_control_panel(root, fig)
+    
+    # Первоначальная отрисовка графика
+    if df_work is not None:
+        refresh_chart(CURRENT_CHART, canvas, fig, df_work)
+    
+    # Запуск главного цикла
+    print("Дашборд запущен. Закрытие окна завершит работу программы.")
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
