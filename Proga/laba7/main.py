@@ -74,10 +74,18 @@ def preprocess_data(df_input: pd.DataFrame) -> Tuple[pd.DataFrame, List[int]]:
         labels=['ниже нормы', 'норма', 'выше нормы']
     ).astype('category')
     
-    df['season'] = pd.cut(
-        df['dt'].dt.month, bins=[0, 3, 6, 9, 12],
-        labels=['зима', 'весна', 'лето', 'осень']
-    ).astype('category')
+    # df['season'] = pd.cut(
+    #     df['dt'].dt.month, bins=[0, 3, 6, 9, 12],
+    #     labels=['I квартал', 'II квартал', 'III квартал', 'IV квартал']
+    # ).astype('category')
+
+    season_map = {
+        1: 'зима', 2: 'зима', 12: 'зима',
+        3: 'весна', 4: 'весна', 5: 'весна',
+        6: 'лето', 7: 'лето', 8: 'лето',
+        9: 'осень', 10: 'осень', 11: 'осень'
+    }
+    df['season'] = df['dt'].dt.month.map(season_map).astype('category')
     
     df['compliance_flag'] = (
         (df['turb'] <= 1.5) &

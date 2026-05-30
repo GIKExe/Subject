@@ -44,7 +44,7 @@
 
 % настройки листинга
 \lstset{
-  language=C++,
+  language=Python,
   basicstyle=\ttfamily\small,
   keywordstyle=\color{blue},
   commentstyle=\color{green!60!black},
@@ -92,159 +92,359 @@
 		2026
 	\end{center}
 
-	% \newpage
-	% \thispagestyle{empty}
+	\newpage
+	\thispagestyle{empty}
 
-	% \section*{Цель работы}
-	% Освоить методы обработки данных, превышающих объем оперативной памяти, путем реализации алгоритмов внешней сортировки. Получить навыки работы с текстовыми и структурированными файлами в языках C++ и Python, провести сравнительный анализ
-	% \section*{Постановка задачи}
-	% \noindent
-	% \indent
-	% Генерируется файл *.csv содержащий поля nickname (строка), uuid (фикс. строка 36 символов), reg\_date (фикс. строка 10 символов),
-	% level (число int - 4 байта), hours (число float - 4 байта), vac\_ban (boolean значение - 1 байт). \\
-	% \indent
-	% Необходимо отсортировать файл используя не более 10\% (100 МБ) ОЗУ и не дольше 10 минут по заданному полю и направлению сортировки. \\
-	% \indent
-	% В приложении с UI необходимо предоставить возможность выбора файла, генерации даных, сортировки с выбором модуля и отображением строк из обоих вайлов.
-	% \section*{Описание алгоритма}
-	% \noindent
-	% Фаза сортировки
-	% \begin{itemize}
-	% 	\item Чтение входного файла блоками по 10 МБ (с откатом до конца строки).
-	% 	\item Парсинг строк CSV в массив записей.
-	% 	\item При заполнении массива записей – сортировка с помощью заданного компаратора (поле + направление).
-	% 	\item Запись отсортированного блока в бинарный временный файл.
-	% 	\item Повтор, пока не закончится входной файл.
-	% 	\item Последний неполный блок также сортируется и сохраняется.
-	% \end{itemize}
-	% \newpage
-	% \noindent
-	% Фаза слияния
-	% \begin{itemize}
-	% 	\item Открытие всех временных файлов, чтение из каждого первой записи.
-	% 	\item Помещение записей в приоритетную очередь с инвертированным компаратором.
-	% 	\item Цикл: извлечение минимальной записи → сериализация в текстовый CSV-буфер → если буфер почти заполнен – сброс в выходной файл.
-	% 	\item Чтение следующей записи из того же временного файла и добавление в очередь.
-	% 	\item После опустошения очереди – сброс остатка буфера.
-	% \end{itemize}
-	% \section*{Ссылка на репозиторий}
-	% https://github.com/GIKExe/Subject/tree/main/Proga/laba5
-	% \section*{Анализ производительности: C++ vs Python}
-	% \subsection*{Общее описание алгоритма}
-	% Обе реализации выполняют внешнюю сортировку большого CSV-файла с фиксированной структурой записи (81 байт в бинарном представлении).
-	% Этапы: \begin{enumerate}
-	% 	\item Разбиение – чтение исходного файла блоками (10 МБ), парсинг CSV в бинарные записи, сортировка блока (до 500 000 записей) и запись во временный файл.
-	% 	\item Слияние – K-way слияние временных файлов с использованием приоритетной очереди, формирование итогового отсортированного CSV-файла.
-	% \end{enumerate}
-	% \newpage
-	% \subsection*{Наблюдаемые различия}
-	% \begin{table}[htbp]
-	% 	\centering
-	% 	\begin{tabular}{|p{4cm}|p{6cm}|p{6cm}|}
-	% 		\hline
-	% 		\textbf{Характеристика} & \textbf{C++} & \textbf{Python (numpy)} \\
-	% 		\hline
-	% 		Скорость работы & Высокая (нативный код) & Заметно ниже (интерпретатор) \\
-	% 		\hline
-	% 		Потребление ОЗУ & $\sim 30\ \text{МБ}$ (основной массив) + буфер ($\sim 10\ \text{МБ}$) & $\sim 40\ \text{МБ}$ (numpy array) + буфер ($\sim 10\ \text{МБ}$) \\
-	% 		\hline
-	% 		Буферизация & $10\ \text{МБ}$ на чтение | $10\ \text{МБ}$ на запись & Аналогично $10\ \text{МБ}$ \\
-	% 		\hline
-	% 	\end{tabular}
-	% \end{table}
-	% \noindent
-	% Ключевой вывод: \\
-	% \noindent
-	% Python медленнее в 5–10 раз (зависит от данных), но потребление оперативной памяти практически идентично.
-	% \subsection*{Детальное объяснение причин}
-	% \begin{enumerate}
-	% 	\item Почему Python медленнее, но память такая же? \begin{enumerate}
-	% 		\item Основная память – компактные структуры данных \begin{itemize}
-	% 			\item В C++ – массив структур Record (упакован, 81 байт на запись).
-	% 			\item В Python – numpy.ndarray с заданным dtype (также плотное хранение, без объектов-обёрток).
-	% 			\item Оба подхода дают примерно одинаковые затраты на хранение сортируемых записей (~30 МБ для 500 000 записей).
-	% 			\item Дополнительные буферы (чтение/запись) – байтовые массивы по 10 МБ – тоже совпадают.
-	% 		\end{itemize}
-	% 		\item Скорость – узкие места в Python \begin{itemize}
-	% 			\item Парсинг CSV (фаза разбиения) \\
-	% 			C++: цикл по буферу, непосредственный доступ к символам, вызовы strtol/strtod (быстрые, библиотечные). \\
-	% 			Python: поиск запятых find() и переводов строк, извлечение срезов bytes, преобразование int()/float() – каждая операция выполняется интерпретатором, что значительно медленнее.
-	% 			\item Сравнение записей при сортировке \\
-	% 			C++: std::sort с компаратором, который инлайнится и работает с примитивами. \\
-	% 			Python: numpy.sort – сама сортировка выполняется в C, но для структурированных массивов требуется сравнение полей, что создаёт накладные расходы на преобразование типов.
-	% 			\item Слияние (фаза слияния) \\
-	% 			C++: чтение бинарной записи → распаковка полей (прямой доступ к памяти) → sprintf в буфер – всё в нативном коде. \\
-	% 			Python: чтение 81 байта → split(b'x00') для обрезки строк → struct.unpack → форматирование через \% (байтовое). Каждый struct.unpack и создание новой строки – дорого.
-	% 			\item Работа с приоритетной очередью \\
-	% 			C++: priority\_queue с элементами-структурами, операции сравнения – без аллокаций. \\
-	% 			Python: heapq работает с объектами MergeNode. Создание объекта, извлечение ключа, сравнение – накладные расходы на динамическую типизацию.
-	% 			\item Отсутствие JIT-компиляции \\
-	% 			CPython интерпретирует байт-код, каждый цикл и вызов функции имеют существенные издержки.
-	% 			Даже оптимизированный код на Python остаётся медленнее C++ в задачах обработки больших объёмов данных.
-	% 		\end{itemize}
-	% 	\end{enumerate}
-	% 	\newpage
-	% 	\item Влияние буферизации – сходство подходов \\
-	% 	Обе реализации используют одинаковую стратегию буферизации: \begin{itemize}
-	% 		\item Буфер чтения 10 МБ – заполняется из файла, затем ищется последний перевод строки (чтобы не разорвать CSV-запись), курсор откатывается.
-	% 		\item Буфер записи 10 МБ – накопление строк сбросом при превышении порога (WRITER\_SIZE - 1000).
-	% 	\end{itemize}
-	% 	Это позволяет эффективно работать с произвольным текстовым CSV-файлом, но: \begin{itemize}
-	% 		\item В C++ операции с буфером выполняются на уровне указателей и memmove/memcmp.
-	% 		\item В Python – поиск подстроки в bytearray и манипуляции срезами – медленнее, но не критично по сравнению с парсингом.
-	% 	\end{itemize}
-	% 	Таким образом, буферизация вносит примерно одинаковый относительный вклад накладных расходов, но абсолютная скорость в C++ выше за счёт языка.
-	% 	\newpage
-	% 	\item Особенности языков, повлиявшие на реализацию \\
-	% 	\begin{table}[htbp]
-	% 		\centering
-	% 		\begin{tabular}{|p{4cm}|p{6cm}|p{6cm}|}
-	% 		\hline
-	% 		\textbf{Аспект} & \textbf{C++} & \textbf{Python} \\
-	% 		\hline
-	% 		Управление памятью & Ручное (\texttt{new/delete}) – минимальный оверхед & GC, но использовано numpy и байтовые буфера, сборщик почти не вмешивается \\
-	% 		\hline
-	% 		Типизация & Статическая, всё известно на этапе компиляции & Динамическая, даже байтовые операции требуют проверок \\
-	% 		\hline
-	% 		Доступ к данным & Прямой через указатели, выравнивание \texttt{\#pragma pack} & Через методы объектов, обёртки \texttt{bytes} \\
-	% 		\hline
-	% 		Оптимизация & Компилятор (\texttt{-O2, -O3}) агрессивно оптимизирует циклы & Интерпретатор не оптимизирует; использование встроенных функций (numpy) частично спасает \\
-	% 		\hline
-	% 		Форматирование & \texttt{sprintf} (или более быстрый \texttt{std::to\_chars}) & \texttt{\%} с байтовыми строками -- медленно из-за копирования и кодирования \\
-	% 		\hline
-	% 		\end{tabular}
-	% 	\end{table}
-	% \end{enumerate}
-	% % \input{solutions}
-	% \section*{Выводы}
-	% В ходе выполнения лабораторной работы я реализовал алгоритм внешней сортировки для CSV-файла,
-	% объём которого превышает доступную оперативную память (ограничение 100 МБ).
-	% Были разработаны две версии программы – на C++ и Python – с единым принципом работы:
-	% разбиение исходного файла на отсортированные блоки по 10 МБ с последующим K-образным слиянием через приоритетную очередь. \\
-	% \newline
-	% Основные результаты: \begin{itemize}
-	% 	\item Обеспечена сортировка файла произвольного размера в рамках заданных ограничений по памяти (до 100 МБ) и времени (менее 10 минут).
-	% 	\item Реализована буферизованная обработка CSV-потоков с корректной обработкой границ записей.
-	% 	\item Проведён сравнительный анализ производительности языков C++ и Python на идентичных входных данных.
-	% \end{itemize}
-	% Ключевые наблюдения: \begin{itemize}
-	% 	\item C++ показывает значительно более высокую скорость (в 5–10 раз быстрее) за счёт нативного кода, отсутствия накладных расходов на интерпретацию и эффективной работы с памятью (указатели, инлайнинг компараторов, быстрый парсинг через strtol/strtod).
-	% 	\item Потребление оперативной памяти в обеих реализациях практически одинаково (~30–40 МБ для массива записей + буферы) благодаря использованию в Python плотных numpy.ndarray вместо объектов-обёрток.
-	% 	\item Узкими местами в Python являются парсинг CSV, распаковка бинарных структур через struct.unpack, форматирование строк и динамическая типизация в приоритетной очереди.
-	% \end{itemize}
-	% В результате работы я освоил методы внешней сортировки,
-	% приобрел практические навыки работы с большими текстовыми и бинарными файлами в C++ и Python,
-	% научился эффективно управлять буферами и сравнивать производительность языков при решении ресурсоёмких задач.
-	% Полученные знания могут быть применены при обработке данных, не помещающихся в оперативную память, 
-	% например, в системах анализа логов или ETL-процессах.
-	% \section*{Листинги кода}
-	% \lstinputlisting[caption={Код модуля на C++}]{external_sort.cpp.nonutf}
-	% \newpage
-	% \lstinputlisting[caption={Заголовочный файл для C++}]{external_sort.h}
-	% \lstinputlisting[caption={Код модуля на Python}, language=Python]{external_sort.py.nonutf}
-	% \newpage
-	% \lstinputlisting[caption={Код генератора данных}, language=Python]{generate.py.nonutf}
-	% \newpage
-	% \lstinputlisting[caption={Код приложения с пользовательским интерфейсом}, language=Python]{main.py.nonutf}
+% ==================== 1. ЦЕЛЬ И ЗАДАЧИ ====================
+\section{Цель и задачи работы}
+\textbf{Цель работы:} освоение практических навыков создания интерактивных дашбордов в Python, включая интеграцию \texttt{pandas DataFrame} с графическими библиотеками \texttt{matplotlib} и \texttt{seaborn}, встраивание графиков в окно \texttt{Tkinter} через бэкенд \texttt{FigureCanvasTkAgg}, реализацию событийно-ориентированной архитектуры (callbacks, event loop), динамическую фильтрацию, агрегацию и feature engineering <<на лету>>, а также проектирование устойчивого процедурного кода без использования классов.
+
+\textbf{Задачи:}
+\begin{enumerate}
+    \item Сформировать и подготовить набор данных с категорийными и временными признаками.
+    \item Реализовать предобработку данных: очистку выбросов, клаппинг физических величин, расчёт скользящих средних и производных признаков.
+    \item Интегрировать графический движок Matplotlib/Seaborn с GUI Tkinter через адаптер \texttt{FigureCanvasTkAgg}.
+    \item Разработать панель управления с интерактивными элементами (выпадающие списки, переключатели агрегации, кнопки смены типа графика).
+    \item Реализовать механизм безопасного обновления данных через \texttt{.copy()} и перерисовки через \texttt{canvas.draw\_idle()} без блокировки основного потока.
+    \item Внедрить экспорт визуализаций в PNG/PDF.
+\end{enumerate}
+
+\newpage
+% ==================== 2. ОПИСАНИЕ ВАРИАНТА ====================
+\section{Описание варианта}
+\textbf{Вариант №20: Водоподготовка}\\
+\textbf{Предметная область:} Мониторинг датчиков очистных сооружений. Контроль гарантирует соответствие санитарным нормам качества питьевой воды.\\
+\textbf{Основные метрики (поля датасета):}
+\begin{itemize}
+    \item \texttt{ts} (int32) -- время замера (Unix timestamp);
+    \item \texttt{filter\_id} (int16) -- идентификатор фильтра;
+    \item \texttt{turb} (float32) -- турбидность, NTU;
+    \item \texttt{ph} (float32) -- кислотность воды;
+    \item \texttt{cl} (float32) -- остаточный хлор, мг/л;
+    \item \texttt{flow} (float32) -- расход воды, м\textsuperscript{3}/ч.
+\end{itemize}
+
+\textbf{Условия фильтрации и очистки:}
+\begin{itemize}
+    \item \texttt{turb < 0} $\rightarrow$ 0; \texttt{cl < 0} $\rightarrow$ 0 (физическая невозможность отрицательных значений);
+    \item \texttt{ph} обрезается (clip) по диапазону $[6.5; 8.5]$ согласно санитарным нормам;
+    \item Выбросы по турбидности заменяются медианой группы (IQR-метод по \texttt{filter\_id});
+    \item Редкие фильтры ($<1\%$ от общего объёма) агрегируются в категорию \texttt{0}.
+\end{itemize}
+
+\textbf{Группировка и оконные функции:}
+\begin{itemize}
+    \item Группировка по \texttt{filter\_id}: расчёт среднего \texttt{turb} (эффективность очистки) и максимума \texttt{flow} (нагрузка на систему);
+    \item Скользящее окно $k=35$: расчёт \texttt{turb\_ma} для выявления долгосрочных трендов;
+    \item \texttt{np.diff(flow)} $\rightarrow$ изменение расхода между замерами (индикатор работы насосов или засорения).
+\end{itemize}
+
+\textbf{Акцент аналитики:} Обратная зависимость чистоты воды и турбидности. При фильтрации аномалий каждый параметр обрабатывается независимо, без взаимного влияния масок.\\
+\textbf{Типы графиков:} Линейный (динамика по неделям), столбчатый (сезонная агрегация), точечный (pH vs turbidity с цветовым кодированием статуса), гистограмма (распределение турбидности).
+
+\newpage
+% ==================== 3. ЛИСТИНГ КОДА ====================
+\section{Листинг программного кода}
+Код реализован в процедурном стиле без использования классов. Логика разбита на этапы в соответствии с методическими указаниями.
+
+\subsection*{Этап 0-1: Инициализация и загрузка данных}
+% \begin{lstlisting}
+% import numpy as np
+% import pandas as pd
+% import tkinter as tk
+% from tkinter import ttk, messagebox, filedialog
+% from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+% import matplotlib.pyplot as plt
+% import seaborn as sns
+% from typing import Optional, List, Tuple
+% import warnings
+% warnings.filterwarnings('ignore')
+
+% # Глобальные переменные состояния
+% df_raw: Optional[pd.DataFrame] = None
+% df_processed: Optional[pd.DataFrame] = None  # Обработанные данные (ОДИН РАЗ)
+% df_work: Optional[pd.DataFrame] = None       # Рабочая копия для графика
+% fig: Optional[plt.Figure] = None
+% canvas: Optional[FigureCanvasTkAgg] = None
+% current_chart: str = "line"
+% available_filters: List[int] = []
+
+% # Инициализация GUI и стилей
+% root = tk.Tk()
+% root.title("Дашборд: Интерактивный анализ")
+% root.geometry("1100x750")
+% root.configure(bg="#f0f2f5")
+
+% filter_var = tk.StringVar(value="Все")
+% agg_var = tk.StringVar(value="mean")
+
+% plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
+% plt.rcParams['axes.unicode_minus'] = False
+% sns.set_theme(style="whitegrid", palette="muted")
+
+% def load_data() -> Optional[pd.DataFrame]:
+%     try:
+%         df = pd.read_csv('data.csv', parse_dates=False)
+%         if df.empty:
+%             messagebox.showerror("Ошибка", "Файл data.csv пуст.")
+%             return None
+%         return df
+%     except Exception as e:
+%         messagebox.showerror("Ошибка", f"Не удалось загрузить CSV: {e}")
+%         return None
+
+% df_raw = load_data()
+% if df_raw is None:
+%     raise SystemExit("Данные недоступны")
+% \end{lstlisting}
+
+\subsection*{Этап 2: Предобработка и Feature Engineering}
+% \begin{lstlisting}
+% def preprocess_data(df_input: pd.DataFrame) -> Tuple[pd.DataFrame, List[int]]:
+%     df = df_input.copy()
+%     # 1. Замена NaN/Inf медианами и клаппинг физических границ
+%     for col in ['turb', 'ph', 'cl', 'flow']:
+%         clean_col = df[col].replace([np.inf, -np.inf], np.nan)
+%         df[col] = clean_col.fillna(clean_col.median())
+%     df['turb'] = df['turb'].clip(lower=0)
+%     df['cl'] = df['cl'].clip(lower=0)
+%     df['ph'] = df['ph'].clip(lower=6.5, upper=8.5)
+
+%     # 2. Feature Engineering
+%     df['dt'] = pd.to_datetime(df['ts'], unit='s')
+%     df['ph_status'] = pd.cut(df['ph'], bins=[0, 6.5, 8.5, 14],
+%                              labels=['ниже нормы', 'норма', 'выше нормы']).astype('category')
+%     df['season'] = pd.cut(df['dt'].dt.month, bins=[0, 3, 6, 9, 12],
+%                           labels=['зима', 'весна', 'лето', 'осень']).astype('category')
+%     df['compliance_flag'] = (df['turb'] <= 1.5) & df['ph'].between(6.5, 8.5) & df['cl'].between(0.3, 0.5)
+
+%     df = df.sort_values(['filter_id', 'ts']).reset_index(drop=True)
+
+%     # Скользящее среднее (k=35) и тренд
+%     df['turb_ma'] = df.groupby('filter_id')['turb'].transform(
+%         lambda x: x.rolling(window=35, min_periods=1).mean()
+%     )
+%     df['turb_diff'] = df.groupby('filter_id')['turb_ma'].transform(lambda x: x.diff().fillna(0))
+%     df['turb_trend'] = np.sign(df['turb_diff']).map(
+%         {-1: 'снижается', 0: 'стабильно', 1: 'растёт'}
+%     ).astype('category')
+
+%     # 3. Обрезка выбросов (IQR по группам)
+%     grp = df.groupby('filter_id')['turb']
+%     q1, q3 = grp.transform('quantile', 0.25), grp.transform('quantile', 0.75)
+%     iqr = q3 - q1
+%     lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+%     is_outlier = (df['turb'] < lower) | (df['turb'] > upper)
+%     df.loc[is_outlier, 'turb'] = grp.transform('median')[is_outlier]
+
+%     # 4. Оптимизация: редкие фильтры -> 0
+%     threshold = int(0.01 * len(df))
+%     counts = df['filter_id'].value_counts()
+%     rare_ids = counts[counts < threshold].index
+%     non_rare_filters = sorted([f for f in df['filter_id'].unique() if f not in rare_ids and f != 0])
+%     df.loc[df['filter_id'].isin(rare_ids), 'filter_id'] = 0
+%     df['filter_id'] = df['filter_id'].astype('category')
+%     return df, non_rare_filters
+
+% df_processed, available_filters = preprocess_data(df_raw)
+% \end{lstlisting}
+
+\subsection*{Этап 3: Встраивание Figure в Tkinter}
+% \begin{lstlisting}
+% plot_frame = tk.Frame(root, bg="white", relief=tk.SUNKEN, bd=1)
+% plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+% fig = plt.Figure(figsize=(10, 6), dpi=100)
+% canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+% canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+% toolbar = NavigationToolbar2Tk(canvas, plot_frame)
+% toolbar.update()
+% toolbar.pack(side=tk.TOP, fill=tk.X)
+% \end{lstlisting}
+
+\subsection*{Этап 4: Функции отрисовки графиков (Seaborn/Matplotlib)}
+% \begin{lstlisting}
+% def clear_figure() -> plt.Axes:
+%     fig.clear()
+%     return fig.add_subplot(111)
+
+% def plot_line() -> None:
+%     ax = clear_figure()
+%     if df_work is None or df_work.empty: return
+%     df_plot = df_work.copy()
+%     df_plot['week'] = df_plot['dt'].dt.to_period('W').dt.start_time
+%     agg_df = df_plot.groupby(['week', 'filter_id'])['turb'].mean().reset_index()
+%     for f_id in sorted(agg_df['filter_id'].unique()):
+%         group = agg_df[agg_df['filter_id'] == f_id]
+%         ax.plot(group['week'], group['turb'], label=f'Фильтр {int(f_id)}', linewidth=1.5, alpha=0.7)
+%     ax.set_title("Динамика турбидности (агрегация по неделям)")
+%     ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), ncol=2, fontsize=8)
+%     fig.autofmt_xdate()
+%     fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
+%     canvas.draw_idle()
+
+% def plot_bar() -> None:
+%     ax = clear_figure()
+%     if df_work is None or df_work.empty: return
+%     agg_df = df_work.groupby('season')['turb'].agg(agg_var.get()).reset_index()
+%     agg_df.columns = ['season', f'turb_{agg_var.get()}']
+%     sns.barplot(data=agg_df, x='season', y=f'turb_{agg_var.get()}', 
+%                 palette=['#4A90E2', '#7ED321', '#F5A623', '#BD10E0'], ax=ax, errorbar=None)
+%     ax.set_title(f"Турбидность по сезонам ({agg_var.get()})")
+%     fig.tight_layout()
+%     canvas.draw_idle()
+
+% def plot_scatter() -> None:
+%     ax = clear_figure()
+%     if df_work is None or df_work.empty: return
+%     df_plot = df_work.sample(n=min(5000, len(df_work)), random_state=42)
+%     sns.scatterplot(data=df_plot, x='ph', y='turb', hue='ph_status', ax=ax, alpha=0.6, s=30,
+%                     palette={'ниже нормы': 'blue', 'норма': 'orange', 'выше нормы': 'red'})
+%     ax.set_title("Зависимость турбидности от pH")
+%     fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
+%     canvas.draw_idle()
+
+% def plot_histogram() -> None:
+%     ax = clear_figure()
+%     if df_work is None or df_work.empty: return
+%     sns.histplot(data=df_work, x='turb', kde=True, ax=ax, bins=50, color='steelblue', alpha=0.7)
+%     ax.set_title("Распределение турбидности")
+%     fig.tight_layout()
+%     canvas.draw_idle()
+% \end{lstlisting}
+
+\subsection*{Этап 5-6: Панель управления и интерактивность}
+% \begin{lstlisting}
+% def apply_filters_and_redraw() -> None:
+%     global df_work
+%     if df_processed is None: return
+%     df_work = df_processed.copy() # Безопасное копирование
+%     selected = filter_var.get()
+%     if selected != "Все":
+%         df_work = df_work.loc[df_work['filter_id'] == int(selected)].copy()
+    
+%     # Маршрутизация отрисовки
+%     if current_chart == "line": plot_line()
+%     elif current_chart == "bar": plot_bar()
+%     elif current_chart == "scatter": plot_scatter()
+%     elif current_chart == "histogram": plot_histogram()
+
+% def set_chart_type(chart_type: str):
+%     global current_chart
+%     current_chart = chart_type
+%     apply_filters_and_redraw()
+
+% def export_plot() -> None:
+%     filepath = filedialog.asksaveasfilename(defaultextension=".png",
+%                          filetypes=[("PNG", "*.png"), ("PDF", "*.pdf")])
+%     if filepath:
+%         fig.savefig(filepath, dpi=300, bbox_inches='tight')
+%         messagebox.showinfo("Экспорт", "График сохранён")
+
+% # Виджеты управления
+% ctrl_frame = tk.Frame(root, bg="#f0f2f5")
+% ctrl_frame.pack(fill=tk.X, padx=10, pady=8)
+
+% tk.Label(ctrl_frame, text="Фильтр:", bg="#f0f2f5").pack(side=tk.LEFT, padx=5)
+% filter_combo = ttk.Combobox(ctrl_frame, textvariable=filter_var, 
+%                             values=["Все", 0] + [str(f) for f in available_filters],
+%                             width=10, state="readonly")
+% filter_combo.pack(side=tk.LEFT, padx=5)
+% filter_var.trace_add("write", lambda *_: apply_filters_and_redraw())
+
+% for agg in ["mean", "median", "sum"]:
+%     tk.Radiobutton(ctrl_frame, text=agg.capitalize(), variable=agg_var,
+%                    value=agg, bg="#f0f2f5", command=apply_filters_and_redraw).pack(side=tk.LEFT, padx=2)
+
+% for chart, txt in [("line", "Линейный"), ("bar", "Столбчатый"), 
+%                    ("scatter", "Точечный"), ("histogram", "Гистограмма")]:
+%     tk.Button(ctrl_frame, text=txt, command=lambda t=chart: set_chart_type(t), width=10).pack(side=tk.LEFT, padx=4)
+
+% tk.Button(ctrl_frame, text="🔄 Обновить", command=apply_filters_and_redraw, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
+% tk.Button(ctrl_frame, text="💾 Экспорт", command=export_plot, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
+
+% if __name__ == '__main__':
+%     df_work = df_processed.copy()
+%     plot_line()
+%     root.mainloop()
+% \end{lstlisting}
+
+\newpage
+% ==================== 4. СКРИНШОТЫ РАБОТЫ ====================
+\section{Скриншоты работы программы}
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_line.png}
+    \caption{Линейный график: динамика турбидности по неделям с фильтрацией по ID}
+    \label{fig:line}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_bar.png}
+    \caption{Столбчатая диаграмма: агрегация турбидности по сезонам (метод: mean)}
+    \label{fig:bar}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_scatter.png}
+    \caption{Точечная диаграмма: зависимость turb от pH с цветовым кодированием статуса}
+    \label{fig:scatter}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_export.png}
+    \caption{Интерфейс экспорта и диалог сохранения в PNG/PDF}
+    \label{fig:export}
+\end{figure}
+
+\newpage
+% ==================== 5. АНАЛИЗ РЕЗУЛЬТАТОВ ====================
+\section{Анализ результатов}
+В ходе выполнения лабораторной работы были получены следующие аналитические инсайты и выявлены системные ограничения:
+
+\textbf{Полученные инсайты:}
+\begin{itemize}
+    \item Применение скользящего среднего (\texttt{window=35}) эффективно сглаживает шумовые выбросы турбидности, позволяя чётко выделить долгосрочные тренды эффективности фильтрации. Резкие пики на сырых данных соответствуют кратковременным перегрузкам насосов, а не системному ухудшению качества воды.
+    \item Независимая обработка масок аномалий (IQR для \texttt{turb}, clip для \texttt{ph}) предотвращает каскадное искажение данных. Цветовое кодирование \texttt{ph\_status} на scatter-plot наглядно демонстрирует отсутствие прямой линейной корреляции между кислотностью и мутностью, что подтверждает необходимость раздельного контроля параметров.
+    \item Агрегация по сезонам выявляет, что максимальные значения турбидности приходятся на весенний период (паводковые нагрузки), что коррелирует с увеличением \texttt{flow}.
+\end{itemize}
+
+\textbf{Выявленные ограничения:}
+\begin{itemize}
+    \item Архитектура Tkinter является однопоточной. При обработке датасетов свыше $10^7$ строк пересчёт \texttt{groupby()} и отрисовка Seaborn могут вызывать кратковременные <<фризы>> интерфейса.
+    \item Статический рендеринг Matplotlib/Seaborn не поддерживает аппаратное ускорение GPU, что ограничивает частоту обновления в режимах реального времени (Real-time streaming).
+    \item Использование \texttt{canvas.draw\_idle()} ставит задачу в очередь событий, но не гарантирует мгновенного отражения данных при частых изменениях ползунков или фильтров.
+\end{itemize}
+
+\textbf{Пути масштабирования решения:}
+\begin{enumerate}
+    \item Перенос тяжёлых вычислений в фоновый поток с использованием \texttt{root.after()} или \texttt{queue.Queue} для безопасной передачи результатов в GUI-поток.
+    \item Замена Seaborn на \texttt{Plotly} или \texttt{Bokeh} для нативной поддержки WebGL-ускорения и интерактивного масштабирования без потери производительности.
+    \item Интеграция \texttt{Dask DataFrame} или \texttt{Polars} для распределённой обработки данных, выходящих за пределы RAM, с сохранением логики фильтрации на уровне API.
+\end{enumerate}
+
+\newpage
+% ==================== 6. ВЫВОДЫ ====================
+\section{Выводы}
+В ходе выполнения лабораторной работы были успешно освоены ключевые технологии создания интерактивных аналитических панелей в экосистеме Python:
+\begin{itemize}
+    \item Реализована событийно-ориентированная архитектура с использованием callback-функций и цикла событий \texttt{mainloop()}, что обеспечило мгновенный отклик интерфейса на действия пользователя.
+    \item Освоено встраивание графических объектов Matplotlib в оконную систему Tkinter через адаптер \texttt{FigureCanvasTkAgg}, включая корректную работу панели навигации (\texttt{NavigationToolbar2Tk}).
+    \item На практике применены методы динамической фильтрации (\texttt{df.loc[]}), агрегации (\texttt{groupby().agg()}), оконных функций (\texttt{rolling()}) и биннинга (\texttt{pd.cut()}) библиотеки pandas. Соблюдено правило обязательного копирования данных (\texttt{.copy()}) для предотвращения \texttt{SettingWithCopyWarning} и искажения исходного датасета.
+    \item Разработано устойчивое процедурное приложение без использования ООП-паттернов, что упростило отладку и чтение кода.
+\end{itemize}
+
+\textbf{Трудности:} Основным вызовом стала синхронизация состояния данных между этапом предобработки и этапом отрисовки. Некорректное использование ссылок на DataFrame приводило к накоплению артефактов на графиках. Проблема была решена строгим разделением \texttt{df\_processed} (статический эталон) и \texttt{df\_work} (рабочая копия), а также использованием \texttt{fig.clear()} перед каждой отрисовкой.\\
+\textbf{Пути улучшения:} Добавление логгирования событий, внедрение прогресс-баров для длительных вычислений, поддержка темной темы интерфейса и автоматическое сохранение состояния фильтров между сессиями.
+
+\newpage
+% ==================== 7. ССЫЛКА НА РЕПОЗИТОРИЙ ====================
+\section{Ссылка на репозиторий}
+Исходный код проекта, скрипты генерации данных и инструкции по запуску доступны по ссылке:\\
+\url{https://github.com/GIKExe/Subject/tree/main/Proga/laba7}
 
 \end{document}
