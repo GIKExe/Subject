@@ -1,0 +1,21 @@
+# Векторизованная фильтрация и очистка
+# Поиск аномалий
+mask_anomaly = (data['turb'] < 0) | (data['cl'] < 0) | \
+               (data['ph'] < 6.5) | (data['ph'] > 8.5) | \
+               ~np.isfinite(data['turb']) | ~np.isfinite(data['cl']) | \
+               ~np.isfinite(data['ph']) | ~np.isfinite(data['flow'])
+
+anom_cnt = np.sum(mask_anomaly)
+print(f'Найдено строк с аномалиями: {anom_cnt} ({anom_cnt/n_rows:.2%})')
+
+col_medians = np.nanmedian(arr_2d, axis=0).astype(np.float32)
+arr_2d = np.where(bad_mask, col_medians, arr_2d)
+data[fields] = rfn.unstructured_to_structured(arr_2d, names=fields)
+
+# Очистка согласно заданию
+data['turb'] = np.where(data['turb'] < 0, 0.0, data['turb'])
+data['cl']   = np.where(data['cl'] < 0, 0.0, data['cl'])
+data['ph']   = np.clip(data['ph'], 6.5, 8.5)
+
+print('Очистка данных завершена.')
+np.save('/content/data_step2.npy', data)

@@ -1,0 +1,25 @@
+# Скользящее окно и разница
+k = 35
+n_rows = data_z.shape[0]
+
+# Скользящее среднее через кумулятивную сумму O(N)
+turb_arr = data_z['turb'].astype(np.float64)
+cs = np.cumsum(turb_arr)
+mavg = np.full(n_rows, np.nan, dtype=np.float32)
+mavg[k-1:] = (cs[k-1:] - np.concatenate(([0.0], cs[:-k]))) / k
+mavg = mavg.astype(np.float32)
+
+# Скорость изменения расхода (векторная разность)
+flow_arr = data_z['flow'].astype(np.float32)
+diff_flow = np.empty(n_rows, dtype=np.float32)
+diff_flow[0] = 0.0
+diff_flow[1:] = flow_arr[1:] - flow_arr[:-1]
+
+# Добавление новых полей
+dtype_s = np.dtype(data_z.dtype.descr + [('turb_mavg', np.float32), ('flow_d', np.float32)])
+data_s = np.empty(n_rows, dtype=dtype_s)
+data_s[list(data_z.dtype.names)] = data_z
+data_s['turb_mavg'] = mavg
+data_s['flow_d'] = diff_flow
+
+print('Скользящее среднее и разность расхода добавлены.')

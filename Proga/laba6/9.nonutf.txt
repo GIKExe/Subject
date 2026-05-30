@@ -1,0 +1,29 @@
+# Проверка согласованности и частотный анализ
+# Логическая маска нарушений
+logic_mask = (data_fe['ph'] < 6.5) | (data_fe['ph'] > 8.5) | \
+             (data_fe['turb'] > 4.0) | (data_fe['flow'] <= 0) | \
+             (data_fe['cl'] < 0)
+
+violations = np.sum(logic_mask)
+print(f'Нарушений логики: {violations} ({violations/n_rows:.2%})')
+
+# Корректировка значений
+data_fe['turb'] = np.where(data_fe['turb'] > 4.0, 4.0, data_fe['turb'])
+data_fe['flow'] = np.where(data_fe['flow'] <= 0, 0.01, data_fe['flow'])
+data_fe['ph']   = np.clip(data_fe['ph'], 6.5, 8.5)
+data_fe['cl']   = np.where(data_fe['cl'] < 0, 0.0, data_fe['cl'])
+
+# Подсчет частот категорий
+f_ids = data_fe['filter_id'].astype(np.int32)
+uniq, cnt = np.unique(f_ids, return_counts=True)
+threshold = 0.01 * n_rows
+rare_ids = uniq[cnt < threshold]
+
+# Векторная замена редких категорий на 0
+f_ids[np.isin(f_ids, rare_ids)] = 0
+
+data_fe['filter_id'] = f_ids.astype(np.int16)
+print(f'Редкие категории {rare_ids} объединены в OTHER (0)')
+
+np.save('/content/data_final.npy', data_fe)
+print('Итоговый массив сохранен в /content/data_final.npy')

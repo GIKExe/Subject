@@ -247,23 +247,21 @@ mavg[k-1:] = (cs[k-1:] - np.concatenate(([0.0], cs[:-k]))) / k
 \url{https://colab.research.google.com/drive/1VEUo_OGYYmcWpvtsMHdohwfX050kf_bB?usp=sharing}
 \end{center}
 
-\section*{Листинги кода}
-\subsection*{Фрагмент: векторизованная очистка (Этап 2)}
-\lstinputlisting{1.nonutf.txt}
+% \section*{Листинги кода}
+% \begin{lstlisting}[caption={Блок 0}]
+% from google.colab import drive
+% drive.mount('/content/drive')
+% \end{lstlisting}
 
-\subsection*{Фрагмент: групповая IQR-замена (Этап 8)}
-\begin{lstlisting}
-turb_iqr = data_fe['turb'].copy()
-for fid in unique_filt:
-	m = data_fe['filter_id'] == fid
-	vals = turb_iqr[m]
-	q1, q3 = np.percentile(vals, [25, 75])
-	iqr = q3 - q1
-	lower, upper = q1 - 1.5*iqr, q3 + 1.5*iqr
-	outlier = (vals < lower) | (vals > upper)
-	if np.any(outlier):
-		turb_iqr[m][outlier] = np.median(vals)
-data_fe['turb'] = turb_iqr
-\end{lstlisting}
+% \lstinputlisting[caption={Блок 1}]{1.nonutf.txt}
+% \lstinputlisting[caption={Блок 2}]{2.nonutf.txt}
+% \lstinputlisting[caption={Блок 3}]{3.nonutf.txt}
+% \lstinputlisting[caption={Блок 4}]{4.nonutf.txt}
+% \lstinputlisting[caption={Блок 5}]{5.nonutf.txt}
+% \lstinputlisting[caption={Блок 6}]{6.nonutf.txt}
+% \newpage
+% \lstinputlisting[caption={Блок 7}]{7.nonutf.txt}
+% \lstinputlisting[caption={Блок 8}]{8.nonutf.txt}
+% \lstinputlisting[caption={Блок 9}]{9.nonutf.txt}
 
 \end{document}

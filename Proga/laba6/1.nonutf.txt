@@ -1,16 +1,38 @@
-# Поиск аномалий составной маской
-mask_anomaly = (data['turb'] < 0) | (data['cl'] < 0) | \
-			   (data['ph'] < 6.5) | (data['ph'] > 8.5) | \
-			   ~np.isfinite(data['turb']) | ~np.isfinite(data['cl'])
+# Загрузка и подготовка типов
+import numpy as np
+from numpy.lib import recfunctions as rfn
+import os
 
-# Предварительная замена NaN/Inf медианами
-for f in ['turb', 'ph', 'cl', 'flow']:
-	col = data[f]
-	bad = ~np.isfinite(col)
-	if np.any(bad):
-		col[bad] = np.nanmedian(col)
+# Определение структурированного типа данных
+dtype = np.dtype([
+    ('ts', np.int32),
+    ('filter_id', np.int16),
+    ('turb', np.float32),
+    ('ph', np.float32),
+    ('cl', np.float32),
+    ('flow', np.float32)
+])
 
-# Очистка согласно заданию (без циклов по строкам)
-data['turb'] = np.where(data['turb'] < 0, 0.0, data['turb'])
-data['cl']   = np.where(data['cl'] < 0, 0.0, data['cl'])
-data['ph']   = np.clip(data['ph'], 6.5, 8.5)
+# Чтение файла
+data = np.genfromtxt('/content/drive/MyDrive/data.csv', delimiter=',', skip_header=1, dtype=dtype, encoding='utf-8')
+
+n_rows = data.shape[0]
+mem_bytes = data.nbytes
+mem_mb = mem_bytes / (1024**2)
+print(f'Количество строк: {n_rows}')
+print(f'Объем памяти: {mem_bytes} байт ({mem_mb:.2f} МБ)')
+
+# Подсчет NaN и Inf
+fields = ['turb', 'ph', 'cl', 'flow']
+total_elements = n_rows * len(fields)
+arr_2d = rfn.structured_to_unstructured(data[fields])
+bad_mask = ~np.isfinite(arr_2d)
+bad_count = np.sum(bad_mask)
+
+ratio = bad_count / total_elements
+if ratio > 0.03:
+    print(f'ВНИМАНИЕ: Доля некорректных значений (NaN/Inf) = {ratio:.2%} (>3%)')
+else:
+    print(f'Доля некорректных значений = {ratio:.2%} (в пределах нормы)')
+
+np.save('/content/data_step1.npy', data)

@@ -1,0 +1,20 @@
+# Производные признаки
+# Вычисление индекса чистоты
+clean_idx = 1.0 / (data_s['turb'].astype(np.float64) + 1e-8)
+# Вычисление эффективности хлорирования на единицу расхода
+cl_eff = data_s['cl'].astype(np.float64) / (data_s['flow'].astype(np.float64) + 1e-8)
+
+# Замена неконечных значений на 0
+clean_idx = np.where(np.isfinite(clean_idx), clean_idx, 0.0).astype(np.float32)
+cl_eff = np.where(np.isfinite(cl_eff), cl_eff, 0.0).astype(np.float32)
+
+# Расширение dtype
+dtype_fe = np.dtype(data_s.dtype.descr + [('clean_idx', np.float32), ('cl_eff', np.float32)])
+data_fe = np.empty(data_s.shape[0], dtype=dtype_fe)
+
+# Копирование существующих полей в новый массив
+data_fe[list(data_s.dtype.names)] = data_s
+data_fe['clean_idx'] = clean_idx
+data_fe['cl_eff'] = cl_eff
+
+print('Производные признаки созданы.')

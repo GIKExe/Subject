@@ -1,0 +1,50 @@
+# Групповая робастная замена выбросов
+# Получение меток групп, обратных индексов и размеров групп
+unique_fid, inverse, counts = np.unique(data_fe['filter_id'], return_inverse=True, return_counts=True)
+n_groups = len(unique_fid)
+
+# Сортировка значений turb по группам
+sort_idx = np.argsort(inverse, kind='stable')
+turb_sorted = data_fe['turb'][sort_idx].astype(np.float64)
+
+# Вычисление начальных индексов каждой группы в отсортированном массиве
+start_idx = np.zeros(n_groups, dtype=int)
+start_idx[1:] = np.cumsum(counts)[:-1]
+
+# Вычисление индексов для Q1, медианы и Q3
+idx_q1 = start_idx + 0.25 * (counts - 1)
+idx_med = start_idx + 0.5 * (counts - 1)
+idx_q3 = start_idx + 0.75 * (counts - 1)
+
+# Функция линейной интерполяции для квантилей
+def interp(arr, idx):
+    low = np.floor(idx).astype(int)
+    high = np.ceil(idx).astype(int)
+    frac = idx - low
+    return arr[low] * (1.0 - frac) + arr[high] * frac
+
+# Векторное вычисление квантилей по группам
+q1 = interp(turb_sorted, idx_q1)
+med = interp(turb_sorted, idx_med)
+q3 = interp(turb_sorted, idx_q3)
+
+# Развертывание групповых статистик на каждую строку исходного массива
+q1_row = q1[inverse]
+med_row = med[inverse]
+q3_row = q3[inverse]
+
+# Вычисление границ IQR
+iqr_row = q3_row - q1_row
+lower_row = q1_row - 1.5 * iqr_row
+upper_row = q3_row + 1.5 * iqr_row
+
+# Определение выбросов и их замена на медиану группы
+outlier_mask = (data_fe['turb'] < lower_row) | (data_fe['turb'] > upper_row)
+turb_new = np.where(outlier_mask, med_row, data_fe['turb']).astype(np.float32)
+
+# Подсчет общего количества замененных записей
+replaced_total = np.sum(outlier_mask)
+
+# Обновление массива и вывод результата
+data_fe['turb'] = turb_new
+print(f'Общая доля измененных записей: {replaced_total/n_rows:.2%}')

@@ -1,0 +1,18 @@
+# Лаговые признаки
+# Лаг = 1 для турбидности
+lag1 = np.roll(data_fe['turb'], 1)
+lag1[0] = np.nan
+diff_lag = data_fe['turb'] - lag1
+diff_lag[0] = 0.0
+
+signs = np.sign(diff_lag)
+valid = np.isfinite(lag1)
+
+# Распределение знаков
+u_signs, c_signs = np.unique(signs[valid], return_counts=True)
+print('Распределение знаков разницы (lag=1):', dict(zip(u_signs.tolist(), c_signs.tolist())))
+
+up_ratio = np.sum(signs[1:] > 0) / (n_rows - 1)
+down_ratio = np.sum(signs[1:] < 0) / (n_rows - 1)
+print(f'Доля записей с ростом турбидности: {up_ratio:.2%}')
+print(f'Доля записей с падением турбидности: {down_ratio:.2%}')

@@ -1,0 +1,33 @@
+# Условная агрегация по группам
+# Условная маска: расход выше среднего по системе
+cond_mask = data_fe['flow'] > np.mean(data_fe['flow'])
+
+# Извлечение отфильтрованных значений
+fids_cond = data_fe['filter_id'][cond_mask].astype(int)
+vals_cond = data_fe['turb'][cond_mask].astype(np.float64)
+
+# Векторное вычисление среднего по группам
+counts = np.bincount(fids_cond, minlength=n_groups)
+sums = np.bincount(fids_cond, weights=vals_cond, minlength=n_groups)
+means = np.where(counts > 0, sums / counts, np.nan).astype(np.float32)
+
+# Векторное вычисление медианы по группам
+sort_idx = np.argsort(fids_cond, kind='stable')
+fids_sorted = fids_cond[sort_idx]
+vals_sorted = vals_cond[sort_idx]
+
+_, start_idx, group_counts = np.unique(fids_sorted, return_index=True, return_counts=True)
+
+mid1 = start_idx + (group_counts - 1) // 2
+mid2 = start_idx + group_counts // 2
+med_vals = ((vals_sorted[mid1] + vals_sorted[mid2]) / 2.0).astype(np.float32)
+
+# Инициализация и заполнение медиан
+medians = np.full(n_groups, np.nan, dtype=np.float32)
+medians[np.searchsorted(unique_filt, fids_sorted[start_idx])] = med_vals
+
+# Сборка итоговой таблицы
+agg_table = np.column_stack((unique_filt.astype(np.float32), means, medians)).astype(np.float32)
+
+print('Условная агрегация [group_id, mean_cond, median_cond]:')
+print(agg_table)
