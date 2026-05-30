@@ -142,263 +142,68 @@
 \textbf{Акцент аналитики:} Обратная зависимость чистоты воды и турбидности. При фильтрации аномалий каждый параметр обрабатывается независимо, без взаимного влияния масок.\\
 \textbf{Типы графиков:} Линейный (динамика по неделям), столбчатый (сезонная агрегация), точечный (pH vs turbidity с цветовым кодированием статуса), гистограмма (распределение турбидности).
 
-\newpage
+% \newpage
 % ==================== 3. ЛИСТИНГ КОДА ====================
 \section{Листинг программного кода}
 Код реализован в процедурном стиле без использования классов. Логика разбита на этапы в соответствии с методическими указаниями.
 
-\subsection*{Этап 0-1: Инициализация и загрузка данных}
-% \begin{lstlisting}
-% import numpy as np
-% import pandas as pd
-% import tkinter as tk
-% from tkinter import ttk, messagebox, filedialog
-% from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-% import matplotlib.pyplot as plt
-% import seaborn as sns
-% from typing import Optional, List, Tuple
-% import warnings
-% warnings.filterwarnings('ignore')
-
-% # Глобальные переменные состояния
-% df_raw: Optional[pd.DataFrame] = None
-% df_processed: Optional[pd.DataFrame] = None  # Обработанные данные (ОДИН РАЗ)
-% df_work: Optional[pd.DataFrame] = None       # Рабочая копия для графика
-% fig: Optional[plt.Figure] = None
-% canvas: Optional[FigureCanvasTkAgg] = None
-% current_chart: str = "line"
-% available_filters: List[int] = []
-
-% # Инициализация GUI и стилей
-% root = tk.Tk()
-% root.title("Дашборд: Интерактивный анализ")
-% root.geometry("1100x750")
-% root.configure(bg="#f0f2f5")
-
-% filter_var = tk.StringVar(value="Все")
-% agg_var = tk.StringVar(value="mean")
-
-% plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
-% plt.rcParams['axes.unicode_minus'] = False
-% sns.set_theme(style="whitegrid", palette="muted")
-
-% def load_data() -> Optional[pd.DataFrame]:
-%     try:
-%         df = pd.read_csv('data.csv', parse_dates=False)
-%         if df.empty:
-%             messagebox.showerror("Ошибка", "Файл data.csv пуст.")
-%             return None
-%         return df
-%     except Exception as e:
-%         messagebox.showerror("Ошибка", f"Не удалось загрузить CSV: {e}")
-%         return None
-
-% df_raw = load_data()
-% if df_raw is None:
-%     raise SystemExit("Данные недоступны")
-% \end{lstlisting}
-
-\subsection*{Этап 2: Предобработка и Feature Engineering}
-% \begin{lstlisting}
-% def preprocess_data(df_input: pd.DataFrame) -> Tuple[pd.DataFrame, List[int]]:
-%     df = df_input.copy()
-%     # 1. Замена NaN/Inf медианами и клаппинг физических границ
-%     for col in ['turb', 'ph', 'cl', 'flow']:
-%         clean_col = df[col].replace([np.inf, -np.inf], np.nan)
-%         df[col] = clean_col.fillna(clean_col.median())
-%     df['turb'] = df['turb'].clip(lower=0)
-%     df['cl'] = df['cl'].clip(lower=0)
-%     df['ph'] = df['ph'].clip(lower=6.5, upper=8.5)
-
-%     # 2. Feature Engineering
-%     df['dt'] = pd.to_datetime(df['ts'], unit='s')
-%     df['ph_status'] = pd.cut(df['ph'], bins=[0, 6.5, 8.5, 14],
-%                              labels=['ниже нормы', 'норма', 'выше нормы']).astype('category')
-%     df['season'] = pd.cut(df['dt'].dt.month, bins=[0, 3, 6, 9, 12],
-%                           labels=['зима', 'весна', 'лето', 'осень']).astype('category')
-%     df['compliance_flag'] = (df['turb'] <= 1.5) & df['ph'].between(6.5, 8.5) & df['cl'].between(0.3, 0.5)
-
-%     df = df.sort_values(['filter_id', 'ts']).reset_index(drop=True)
-
-%     # Скользящее среднее (k=35) и тренд
-%     df['turb_ma'] = df.groupby('filter_id')['turb'].transform(
-%         lambda x: x.rolling(window=35, min_periods=1).mean()
-%     )
-%     df['turb_diff'] = df.groupby('filter_id')['turb_ma'].transform(lambda x: x.diff().fillna(0))
-%     df['turb_trend'] = np.sign(df['turb_diff']).map(
-%         {-1: 'снижается', 0: 'стабильно', 1: 'растёт'}
-%     ).astype('category')
-
-%     # 3. Обрезка выбросов (IQR по группам)
-%     grp = df.groupby('filter_id')['turb']
-%     q1, q3 = grp.transform('quantile', 0.25), grp.transform('quantile', 0.75)
-%     iqr = q3 - q1
-%     lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
-%     is_outlier = (df['turb'] < lower) | (df['turb'] > upper)
-%     df.loc[is_outlier, 'turb'] = grp.transform('median')[is_outlier]
-
-%     # 4. Оптимизация: редкие фильтры -> 0
-%     threshold = int(0.01 * len(df))
-%     counts = df['filter_id'].value_counts()
-%     rare_ids = counts[counts < threshold].index
-%     non_rare_filters = sorted([f for f in df['filter_id'].unique() if f not in rare_ids and f != 0])
-%     df.loc[df['filter_id'].isin(rare_ids), 'filter_id'] = 0
-%     df['filter_id'] = df['filter_id'].astype('category')
-%     return df, non_rare_filters
-
-% df_processed, available_filters = preprocess_data(df_raw)
-% \end{lstlisting}
-
-\subsection*{Этап 3: Встраивание Figure в Tkinter}
-% \begin{lstlisting}
-% plot_frame = tk.Frame(root, bg="white", relief=tk.SUNKEN, bd=1)
-% plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-% fig = plt.Figure(figsize=(10, 6), dpi=100)
-% canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-% canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
-% toolbar = NavigationToolbar2Tk(canvas, plot_frame)
-% toolbar.update()
-% toolbar.pack(side=tk.TOP, fill=tk.X)
-% \end{lstlisting}
-
-\subsection*{Этап 4: Функции отрисовки графиков (Seaborn/Matplotlib)}
-% \begin{lstlisting}
-% def clear_figure() -> plt.Axes:
-%     fig.clear()
-%     return fig.add_subplot(111)
-
-% def plot_line() -> None:
-%     ax = clear_figure()
-%     if df_work is None or df_work.empty: return
-%     df_plot = df_work.copy()
-%     df_plot['week'] = df_plot['dt'].dt.to_period('W').dt.start_time
-%     agg_df = df_plot.groupby(['week', 'filter_id'])['turb'].mean().reset_index()
-%     for f_id in sorted(agg_df['filter_id'].unique()):
-%         group = agg_df[agg_df['filter_id'] == f_id]
-%         ax.plot(group['week'], group['turb'], label=f'Фильтр {int(f_id)}', linewidth=1.5, alpha=0.7)
-%     ax.set_title("Динамика турбидности (агрегация по неделям)")
-%     ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), ncol=2, fontsize=8)
-%     fig.autofmt_xdate()
-%     fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
-%     canvas.draw_idle()
-
-% def plot_bar() -> None:
-%     ax = clear_figure()
-%     if df_work is None or df_work.empty: return
-%     agg_df = df_work.groupby('season')['turb'].agg(agg_var.get()).reset_index()
-%     agg_df.columns = ['season', f'turb_{agg_var.get()}']
-%     sns.barplot(data=agg_df, x='season', y=f'turb_{agg_var.get()}', 
-%                 palette=['#4A90E2', '#7ED321', '#F5A623', '#BD10E0'], ax=ax, errorbar=None)
-%     ax.set_title(f"Турбидность по сезонам ({agg_var.get()})")
-%     fig.tight_layout()
-%     canvas.draw_idle()
-
-% def plot_scatter() -> None:
-%     ax = clear_figure()
-%     if df_work is None or df_work.empty: return
-%     df_plot = df_work.sample(n=min(5000, len(df_work)), random_state=42)
-%     sns.scatterplot(data=df_plot, x='ph', y='turb', hue='ph_status', ax=ax, alpha=0.6, s=30,
-%                     palette={'ниже нормы': 'blue', 'норма': 'orange', 'выше нормы': 'red'})
-%     ax.set_title("Зависимость турбидности от pH")
-%     fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
-%     canvas.draw_idle()
-
-% def plot_histogram() -> None:
-%     ax = clear_figure()
-%     if df_work is None or df_work.empty: return
-%     sns.histplot(data=df_work, x='turb', kde=True, ax=ax, bins=50, color='steelblue', alpha=0.7)
-%     ax.set_title("Распределение турбидности")
-%     fig.tight_layout()
-%     canvas.draw_idle()
-% \end{lstlisting}
-
-\subsection*{Этап 5-6: Панель управления и интерактивность}
-% \begin{lstlisting}
-% def apply_filters_and_redraw() -> None:
-%     global df_work
-%     if df_processed is None: return
-%     df_work = df_processed.copy() # Безопасное копирование
-%     selected = filter_var.get()
-%     if selected != "Все":
-%         df_work = df_work.loc[df_work['filter_id'] == int(selected)].copy()
-    
-%     # Маршрутизация отрисовки
-%     if current_chart == "line": plot_line()
-%     elif current_chart == "bar": plot_bar()
-%     elif current_chart == "scatter": plot_scatter()
-%     elif current_chart == "histogram": plot_histogram()
-
-% def set_chart_type(chart_type: str):
-%     global current_chart
-%     current_chart = chart_type
-%     apply_filters_and_redraw()
-
-% def export_plot() -> None:
-%     filepath = filedialog.asksaveasfilename(defaultextension=".png",
-%                          filetypes=[("PNG", "*.png"), ("PDF", "*.pdf")])
-%     if filepath:
-%         fig.savefig(filepath, dpi=300, bbox_inches='tight')
-%         messagebox.showinfo("Экспорт", "График сохранён")
-
-% # Виджеты управления
-% ctrl_frame = tk.Frame(root, bg="#f0f2f5")
-% ctrl_frame.pack(fill=tk.X, padx=10, pady=8)
-
-% tk.Label(ctrl_frame, text="Фильтр:", bg="#f0f2f5").pack(side=tk.LEFT, padx=5)
-% filter_combo = ttk.Combobox(ctrl_frame, textvariable=filter_var, 
-%                             values=["Все", 0] + [str(f) for f in available_filters],
-%                             width=10, state="readonly")
-% filter_combo.pack(side=tk.LEFT, padx=5)
-% filter_var.trace_add("write", lambda *_: apply_filters_and_redraw())
-
-% for agg in ["mean", "median", "sum"]:
-%     tk.Radiobutton(ctrl_frame, text=agg.capitalize(), variable=agg_var,
-%                    value=agg, bg="#f0f2f5", command=apply_filters_and_redraw).pack(side=tk.LEFT, padx=2)
-
-% for chart, txt in [("line", "Линейный"), ("bar", "Столбчатый"), 
-%                    ("scatter", "Точечный"), ("histogram", "Гистограмма")]:
-%     tk.Button(ctrl_frame, text=txt, command=lambda t=chart: set_chart_type(t), width=10).pack(side=tk.LEFT, padx=4)
-
-% tk.Button(ctrl_frame, text="🔄 Обновить", command=apply_filters_and_redraw, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
-% tk.Button(ctrl_frame, text="💾 Экспорт", command=export_plot, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
-
-% if __name__ == '__main__':
-%     df_work = df_processed.copy()
-%     plot_line()
-%     root.mainloop()
-% \end{lstlisting}
-
+\lstinputlisting[caption={Этап 0-1: Инициализация и загрузка данных}]{1.nonutf.txt}
 \newpage
+
+\lstinputlisting[caption={Этап 2: Предобработка и Feature Engineering}]{2.nonutf.txt}
+
+
+\begin{lstlisting}[caption={Этап 3: Встраивание Figure в Tkinter}]
+plot_frame = tk.Frame(root, bg="white", relief=tk.SUNKEN, bd=1)
+plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+fig = plt.Figure(figsize=(10, 6), dpi=100)
+canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+toolbar = NavigationToolbar2Tk(canvas, plot_frame)
+toolbar.update()
+toolbar.pack(side=tk.TOP, fill=tk.X)
+\end{lstlisting}
+\newpage
+
+\lstinputlisting[caption={Этап 4: Функции отрисовки графиков (Seaborn/Matplotlib)}]{4.nonutf.txt}
+
+
+\lstinputlisting[caption={Этап 5-6: Панель управления и интерактивность}]{5.nonutf.txt}
+
+
+% \newpage
 % ==================== 4. СКРИНШОТЫ РАБОТЫ ====================
 \section{Скриншоты работы программы}
 \begin{figure}[H]
     \centering
-    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_line.png}
-    \caption{Линейный график: динамика турбидности по неделям с фильтрацией по ID}
-    \label{fig:line}
+    \includegraphics[width=16cm]{1.png}
+    \caption{Линейный график: динамика турбидности по всем фильтрам}
 \end{figure}
-
+\newpage
 \begin{figure}[H]
     \centering
-    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_bar.png}
-    \caption{Столбчатая диаграмма: агрегация турбидности по сезонам (метод: mean)}
-    \label{fig:bar}
+    \includegraphics[width=17cm]{2.png}
+    \caption{Линейный график: динамика турбидности по одному фильтру}
 \end{figure}
-
+% \newpage
 \begin{figure}[H]
     \centering
-    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_scatter.png}
+    \includegraphics[width=17cm]{3.png}
+    \caption{Столбчатая диаграмма: агрегация турбидности по сезонам}
+\end{figure}
+\newpage
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=17cm]{4.png}
     \caption{Точечная диаграмма: зависимость turb от pH с цветовым кодированием статуса}
-    \label{fig:scatter}
 \end{figure}
-
+% \newpage
 \begin{figure}[H]
     \centering
-    \fbox{\rule{0pt}{3cm}\rule{4cm}{0pt}} % Замените на \includegraphics[width=0.9\textwidth]{screenshot_export.png}
-    \caption{Интерфейс экспорта и диалог сохранения в PNG/PDF}
-    \label{fig:export}
+    \includegraphics[width=13cm]{5.png}
+    \caption{Диалог сохранения в PNG/PDF}
 \end{figure}
 
 \newpage
@@ -427,7 +232,7 @@
     \item Интеграция \texttt{Dask DataFrame} или \texttt{Polars} для распределённой обработки данных, выходящих за пределы RAM, с сохранением логики фильтрации на уровне API.
 \end{enumerate}
 
-\newpage
+% \newpage
 % ==================== 6. ВЫВОДЫ ====================
 \section{Выводы}
 В ходе выполнения лабораторной работы были успешно освоены ключевые технологии создания интерактивных аналитических панелей в экосистеме Python:
@@ -441,7 +246,7 @@
 \textbf{Трудности:} Основным вызовом стала синхронизация состояния данных между этапом предобработки и этапом отрисовки. Некорректное использование ссылок на DataFrame приводило к накоплению артефактов на графиках. Проблема была решена строгим разделением \texttt{df\_processed} (статический эталон) и \texttt{df\_work} (рабочая копия), а также использованием \texttt{fig.clear()} перед каждой отрисовкой.\\
 \textbf{Пути улучшения:} Добавление логгирования событий, внедрение прогресс-баров для длительных вычислений, поддержка темной темы интерфейса и автоматическое сохранение состояния фильтров между сессиями.
 
-\newpage
+% \newpage
 % ==================== 7. ССЫЛКА НА РЕПОЗИТОРИЙ ====================
 \section{Ссылка на репозиторий}
 Исходный код проекта, скрипты генерации данных и инструкции по запуску доступны по ссылке:\\

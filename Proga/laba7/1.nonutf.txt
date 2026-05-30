@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import matplotlib.pyplot as plt
+import seaborn as sns
+from typing import Optional, List, Tuple
+import warnings
+warnings.filterwarnings('ignore')
+
+# Глобальные переменные состояния
+df_raw: Optional[pd.DataFrame] = None
+df_processed: Optional[pd.DataFrame] = None  # Обработанные данные (ОДИН РАЗ)
+df_work: Optional[pd.DataFrame] = None       # Рабочая копия для графика
+fig: Optional[plt.Figure] = None
+canvas: Optional[FigureCanvasTkAgg] = None
+current_chart: str = "line"
+available_filters: List[int] = []
+
+# Инициализация GUI и стилей
+root = tk.Tk()
+root.title("Дашборд: Интерактивный анализ")
+root.geometry("1100x750")
+root.configure(bg="#f0f2f5")
+
+filter_var = tk.StringVar(value="Все")
+agg_var = tk.StringVar(value="mean")
+
+plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
+plt.rcParams['axes.unicode_minus'] = False
+sns.set_theme(style="whitegrid", palette="muted")
+
+def load_data() -> Optional[pd.DataFrame]:
+    try:
+        df = pd.read_csv('data.csv', parse_dates=False)
+        if df.empty:
+            messagebox.showerror("Ошибка", "Файл data.csv пуст.")
+            return None
+        return df
+    except Exception as e:
+        messagebox.showerror("Ошибка", f"Не удалось загрузить CSV: {e}")
+        return None
+
+df_raw = load_data()
+if df_raw is None:
+    raise SystemExit("Данные недоступны")

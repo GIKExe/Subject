@@ -1,0 +1,47 @@
+def clear_figure() -> plt.Axes:
+    fig.clear()
+    return fig.add_subplot(111)
+
+def plot_line() -> None:
+    ax = clear_figure()
+    if df_work is None or df_work.empty: return
+    df_plot = df_work.copy()
+    df_plot['week'] = df_plot['dt'].dt.to_period('W').dt.start_time
+    agg_df = df_plot.groupby(['week', 'filter_id'])['turb'].mean().reset_index()
+    for f_id in sorted(agg_df['filter_id'].unique()):
+        group = agg_df[agg_df['filter_id'] == f_id]
+        ax.plot(group['week'], group['turb'], label=f'Фильтр {int(f_id)}', linewidth=1.5, alpha=0.7)
+    ax.set_title("Динамика турбидности (агрегация по неделям)")
+    ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), ncol=2, fontsize=8)
+    fig.autofmt_xdate()
+    fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
+    canvas.draw_idle()
+
+def plot_bar() -> None:
+    ax = clear_figure()
+    if df_work is None or df_work.empty: return
+    agg_df = df_work.groupby('season')['turb'].agg(agg_var.get()).reset_index()
+    agg_df.columns = ['season', f'turb_{agg_var.get()}']
+    sns.barplot(data=agg_df, x='season', y=f'turb_{agg_var.get()}', 
+                palette=['#4A90E2', '#7ED321', '#F5A623', '#BD10E0'], ax=ax, errorbar=None)
+    ax.set_title(f"Турбидность по сезонам ({agg_var.get()})")
+    fig.tight_layout()
+    canvas.draw_idle()
+
+def plot_scatter() -> None:
+    ax = clear_figure()
+    if df_work is None or df_work.empty: return
+    df_plot = df_work.sample(n=min(5000, len(df_work)), random_state=42)
+    sns.scatterplot(data=df_plot, x='ph', y='turb', hue='ph_status', ax=ax, alpha=0.6, s=30,
+                    palette={'ниже нормы': 'blue', 'норма': 'orange', 'выше нормы': 'red'})
+    ax.set_title("Зависимость турбидности от pH")
+    fig.tight_layout(rect=[0, 0.03, 0.88, 0.95])
+    canvas.draw_idle()
+
+def plot_histogram() -> None:
+    ax = clear_figure()
+    if df_work is None or df_work.empty: return
+    sns.histplot(data=df_work, x='turb', kde=True, ax=ax, bins=50, color='steelblue', alpha=0.7)
+    ax.set_title("Распределение турбидности")
+    fig.tight_layout()
+    canvas.draw_idle()

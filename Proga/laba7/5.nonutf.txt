@@ -1,0 +1,52 @@
+def apply_filters_and_redraw() -> None:
+    global df_work
+    if df_processed is None: return
+    df_work = df_processed.copy() # Безопасное копирование
+    selected = filter_var.get()
+    if selected != "Все":
+        df_work = df_work.loc[df_work['filter_id'] == int(selected)].copy()
+    
+    # Маршрутизация отрисовки
+    if current_chart == "line": plot_line()
+    elif current_chart == "bar": plot_bar()
+    elif current_chart == "scatter": plot_scatter()
+    elif current_chart == "histogram": plot_histogram()
+
+def set_chart_type(chart_type: str):
+    global current_chart
+    current_chart = chart_type
+    apply_filters_and_redraw()
+
+def export_plot() -> None:
+    filepath = filedialog.asksaveasfilename(defaultextension=".png",
+                         filetypes=[("PNG", "*.png"), ("PDF", "*.pdf")])
+    if filepath:
+        fig.savefig(filepath, dpi=300, bbox_inches='tight')
+        messagebox.showinfo("Экспорт", "График сохранён")
+
+# Виджеты управления
+ctrl_frame = tk.Frame(root, bg="#f0f2f5")
+ctrl_frame.pack(fill=tk.X, padx=10, pady=8)
+
+tk.Label(ctrl_frame, text="Фильтр:", bg="#f0f2f5").pack(side=tk.LEFT, padx=5)
+filter_combo = ttk.Combobox(ctrl_frame, textvariable=filter_var, 
+                            values=["Все", 0] + [str(f) for f in available_filters],
+                            width=10, state="readonly")
+filter_combo.pack(side=tk.LEFT, padx=5)
+filter_var.trace_add("write", lambda *_: apply_filters_and_redraw())
+
+for agg in ["mean", "median", "sum"]:
+    tk.Radiobutton(ctrl_frame, text=agg.capitalize(), variable=agg_var,
+                   value=agg, bg="#f0f2f5", command=apply_filters_and_redraw).pack(side=tk.LEFT, padx=2)
+
+for chart, txt in [("line", "Линейный"), ("bar", "Столбчатый"), 
+                   ("scatter", "Точечный"), ("histogram", "Гистограмма")]:
+    tk.Button(ctrl_frame, text=txt, command=lambda t=chart: set_chart_type(t), width=10).pack(side=tk.LEFT, padx=4)
+
+tk.Button(ctrl_frame, text="?? Обновить", command=apply_filters_and_redraw, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
+tk.Button(ctrl_frame, text="?? Экспорт", command=export_plot, width=12, bg="#e0e0e0").pack(side=tk.RIGHT, padx=4)
+
+if __name__ == '__main__':
+    df_work = df_processed.copy()
+    plot_line()
+    root.mainloop()

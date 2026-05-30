@@ -1,0 +1,47 @@
+def preprocess_data(df_input: pd.DataFrame) -> Tuple[pd.DataFrame, List[int]]:
+    df = df_input.copy()
+    # 1. Замена NaN/Inf медианами и клаппинг физических границ
+    for col in ['turb', 'ph', 'cl', 'flow']:
+        clean_col = df[col].replace([np.inf, -np.inf], np.nan)
+        df[col] = clean_col.fillna(clean_col.median())
+    df['turb'] = df['turb'].clip(lower=0)
+    df['cl'] = df['cl'].clip(lower=0)
+    df['ph'] = df['ph'].clip(lower=6.5, upper=8.5)
+
+    # 2. Feature Engineering
+    df['dt'] = pd.to_datetime(df['ts'], unit='s')
+    df['ph_status'] = pd.cut(df['ph'], bins=[0, 6.5, 8.5, 14],
+                             labels=['ниже нормы', 'норма', 'выше нормы']).astype('category')
+    df['season'] = pd.cut(df['dt'].dt.month, bins=[0, 3, 6, 9, 12],
+                          labels=['зима', 'весна', 'лето', 'осень']).astype('category')
+    df['compliance_flag'] = (df['turb'] <= 1.5) & df['ph'].between(6.5, 8.5) & df['cl'].between(0.3, 0.5)
+
+    df = df.sort_values(['filter_id', 'ts']).reset_index(drop=True)
+
+    # Скользящее среднее (k=35) и тренд
+    df['turb_ma'] = df.groupby('filter_id')['turb'].transform(
+        lambda x: x.rolling(window=35, min_periods=1).mean()
+    )
+    df['turb_diff'] = df.groupby('filter_id')['turb_ma'].transform(lambda x: x.diff().fillna(0))
+    df['turb_trend'] = np.sign(df['turb_diff']).map(
+        {-1: 'снижается', 0: 'стабильно', 1: 'растёт'}
+    ).astype('category')
+
+    # 3. Обрезка выбросов (IQR по группам)
+    grp = df.groupby('filter_id')['turb']
+    q1, q3 = grp.transform('quantile', 0.25), grp.transform('quantile', 0.75)
+    iqr = q3 - q1
+    lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    is_outlier = (df['turb'] < lower) | (df['turb'] > upper)
+    df.loc[is_outlier, 'turb'] = grp.transform('median')[is_outlier]
+
+    # 4. Оптимизация: редкие фильтры -> 0
+    threshold = int(0.01 * len(df))
+    counts = df['filter_id'].value_counts()
+    rare_ids = counts[counts < threshold].index
+    non_rare_filters = sorted([f for f in df['filter_id'].unique() if f not in rare_ids and f != 0])
+    df.loc[df['filter_id'].isin(rare_ids), 'filter_id'] = 0
+    df['filter_id'] = df['filter_id'].astype('category')
+    return df, non_rare_filters
+
+df_processed, available_filters = preprocess_data(df_raw)
