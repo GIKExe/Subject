@@ -1,0 +1,152 @@
+\documentclass[oneside,a4paper,14pt]{extarticle} %размер шрифта 14
+\usepackage[T1,T2A]{fontenc}
+\usepackage[
+	a4paper,
+	letterpaper,
+	top=2cm,
+	bottom=2cm,
+	left=2.5cm,
+	right=1.5cm
+]{geometry}
+\usepackage[utf8]{inputenc} %кодировка текста
+\usepackage[russian]{babel} %поддержка русского языка
+\usepackage{textcomp} %текстовые символы
+\usepackage{indentfirst} %корректировка отступов
+\usepackage{graphicx} %работа с изображениям
+\usepackage{listings} %для кода !!!
+\usepackage{listingsutf8}
+% \usepackage{hyperref} % для ссылок
+\usepackage{xcolor}
+\usepackage{float} % для "впихивания" изображений в странницу
+\usepackage{mwe} % for blind text and example-image-a in example
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{amsmath}  % для формул и символов
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[all]{xy}
+\usepackage[breaklinks]{hyperref}
+%%размер кегля у заголовков разделов
+\usepackage{titlesec}
+\titleformat{\section}
+{\normalsize\bfseries}
+{\thesection} {1em}{}
+\titleformat{\subsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{}
+\titleformat{\subsubsection}
+{\normalsize\bfseries}
+{\thesubsection} {1em}{}
+
+\renewcommand\baselinestretch{1.33}\normalsize % межстрочный интервал
+\setlength{\parindent}{1.25cm}
+\usepackage{indentfirst}
+
+
+% прочее
+\usepackage{fancyhdr}
+\usepackage{colortbl}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz -timing}
+\usepackage{tikz}
+\usetikzlibrary{karnaugh}
+\usepackage{karnaugh-map}
+% \usepackage{showframe}
+
+% настройки листинга
+\lstset{
+  language=C++,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  inputencoding=cp1251,
+  extendedchars=true,
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=cyan,    % цвет внутренних ссылок
+  urlcolor=blue,    % цвет URL
+  filecolor=magenta % цвет ссылок на файлы
+}
+
+
+\begin{document}
+	\newpage\thispagestyle{empty}
+	\begin{center}
+		МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			РОССИЙСКОЙ ФЕДЕРАЦИИ
+			ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ БЮДЖЕТНОЕ\\
+			ОБРАЗОВАТЕЛЬНОЕ
+			УЧРЕЖДЕНИЕ ВЫСШЕГО ОБРАЗОВАНИЯ\\
+			«ВЯТСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ»\\
+			Институт математики и информационных систем\\
+			Факультет автоматики и вычислительной техники\\
+			Кафедра электронных вычислительных машин
+	\end{center}
+	\vspace{20mm}
+
+	\begin{center}
+		Отчёт по практической работе №3\\
+		по дисциплине\\
+		<<Введение в аппаратное обеспечение \\ систем искусственного интеллекта>>\\
+		% <<Вариант 3>>\\
+	\end{center}
+	\vspace{48mm}
+
+	Выполнил студент гр. ИВТб-1303-06-00 \hspace{10mm} \rule[-0,5mm]{23mm}{0.15mm}\,/Гортоломей И.К./
+
+
+	Проверил доцент кафедры ЭВМ \hfill  \rule[-0,5mm]{30mm}{0.15mm}\,/Коржавина А.С./
+
+	\vfill
+	\begin{center}
+		Киров\\
+		2026
+	\end{center}
+
+	\newpage%\thispagestyle{empty}
+
+	\section*{Цель работы:} Сборка схем без программирования на счётчиках, регистрах, шифраторах, дешифраторах и базовых логических элементах (НЕ, И, ИЛИ, Искл. ИЛИ ...)
+
+	\section*{Решение заданий}
+
+	\noindent
+	\textbf{Полная таблица истинности для задания <<Детектор секретного кода>>}
+\begin{center}
+\begin{tabular}{cccc|cccc}
+$x_1$&$x_2$&$x_3$&$x_4$&$ -x_3=q_1$&$x_1 \wedge x_2=q_2$&$q_1 \wedge x_4=q_3$&$q_2 \wedge q_3=f$\\
+\hline
+$0$&$0$&$0$&$0$&$1$&$0$&$0$&$0$\\
+$0$&$0$&$0$&$1$&$1$&$0$&$1$&$0$\\
+$0$&$0$&$1$&$0$&$0$&$0$&$0$&$0$\\
+$0$&$0$&$1$&$1$&$0$&$0$&$0$&$0$\\
+$0$&$1$&$0$&$0$&$1$&$0$&$0$&$0$\\
+$0$&$1$&$0$&$1$&$1$&$0$&$1$&$0$\\
+$0$&$1$&$1$&$0$&$0$&$0$&$0$&$0$\\
+$0$&$1$&$1$&$1$&$0$&$0$&$0$&$0$\\
+$1$&$0$&$0$&$0$&$1$&$0$&$0$&$0$\\
+$1$&$0$&$0$&$1$&$1$&$0$&$1$&$0$\\
+$1$&$0$&$1$&$0$&$0$&$0$&$0$&$0$\\
+$1$&$0$&$1$&$1$&$0$&$0$&$0$&$0$\\
+$1$&$1$&$0$&$0$&$1$&$1$&$0$&$0$\\
+$1$&$1$&$0$&$1$&$1$&$1$&$1$&$1$\\
+$1$&$1$&$1$&$0$&$0$&$1$&$0$&$0$\\
+$1$&$1$&$1$&$1$&$0$&$1$&$0$&$0$\\
+
+\end{tabular}
+\end{center}
+
+	% \newpage
+	\section*{Выводы}
+	Сборка <<на живую>> позволяет понять как работают базовые элементы.
+	Также позволяет закрепить знания о апаратном обеспечении.
+
+\end{document}
